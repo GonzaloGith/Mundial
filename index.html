@@ -1,28 +1,36 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Mundial 2026 - En Vivo</title>
+    <title>Mundial 2026 - Posiciones y Fixture</title>
     <style>
         :root {
-            --primary: #0b132b;
-            --secondary: #3a7ca5;
-            --bg: #f4f6f9;
+            --primary: #0f172a;
+            --secondary: #2563eb;
+            --bg: #f8fafc;
             --card: #ffffff;
-            --text: #1c2541;
+            --text: #334155;
             --accent: #10b981;
         }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         header { background: var(--primary); color: white; text-align: center; padding: 1.5rem; }
-        nav { display: flex; justify-content: center; background: #1c2541; }
+        nav { display: flex; justify-content: center; background: #1e293b; }
         nav button { background: transparent; border: none; color: white; padding: 1rem 2rem; font-size: 1rem; cursor: pointer; font-weight: bold; }
         nav button.active { background: rgba(255,255,255,0.15); border-bottom: 4px solid var(--secondary); }
         main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
+        /* Estilos Calendario */
+        .match-card { background: var(--card); border-radius: 8px; padding: 1.2rem; margin: 0.8rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .match-meta { font-size: 0.85rem; color: #64748b; width: 30%; }
+        .match-display { display: flex; justify-content: center; align-items: center; gap: 1rem; width: 45%; font-size: 1.1rem; font-weight: bold; }
+        .score { background: #f1f5f9; padding: 0.4rem 0.8rem; border-radius: 6px; min-width: 25px; text-align: center; color: #0f172a; }
+        .status-badge { width: 25%; text-align: right; font-size: 0.85rem; font-weight: bold; }
+        .status-finalizado { color: #64748b; }
+        .status-programado { color: var(--secondary); }
+
         /* Estilos Tablas */
         .grid-grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
         .group-box { background: var(--card); border-radius: 8px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
@@ -32,19 +40,13 @@
         td { padding: 0.6rem 0.3rem; border-bottom: 1px solid #f1f5f9; }
         .txt-left { text-align: left; font-weight: bold; }
         .top-two { border-left: 4px solid var(--accent); }
-
-        /* Estilos Calendario */
-        .match-card { background: var(--card); border-radius: 8px; padding: 1.2rem; margin: 0.8rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .match-meta { font-size: 0.85rem; color: #64748b; width: 30%; }
-        .match-display { display: flex; justify-content: center; align-items: center; gap: 1rem; width: 45%; font-size: 1.1rem; font-weight: bold; }
-        .score { background: #f1f5f9; padding: 0.4rem 0.8rem; border-radius: 6px; min-width: 25px; text-align: center; color: #0f172a; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🏆 SEGUIMIENTO MUNDIAL 2026</h1>
-        <p>Estadísticas y posiciones actualizadas de forma automatizada</p>
+        <h1>🏆 MUNDIAL 2026</h1>
+        <p>Calendario Oficial y Tabla de Posiciones de los Grupos</p>
     </header>
 
     <nav>
@@ -55,106 +57,110 @@
     <main>
         <section id="grupos" class="tab-content active">
             <h2>Posiciones de los Grupos</h2>
-            <div id="contenedor-grupos" class="grid-grupos">Sincronizando con la base de datos de fútbol abierta...</div>
+            <div id="contenedor-grupos" class="grid-grupos">Cargando tablas...</div>
         </section>
 
         <section id="fechas" class="tab-content">
-            <h2>Fixture General del Torneo</h2>
-            <div id="lista-partidos">Cargando partidos...</div>
+            <h2>Fixture y Resultados</h2>
+            <div id="lista-partidos">Cargando fixture...</div>
         </section>
     </main>
 
     <script>
-        let partidosTorneo = [];
-        let clasificacionEquipos = {};
+        // === TU BASE DE DATOS LOCAL PROPIA ===
+        // Puedes cambiar los goles de 'null' a números reales y pasar el estado a "finalizado"
+        const datosMundial = {
+            "partidos": [
+                { "id": 1, "grupo": "A", "fecha": "2026-06-11", "hora": "15:00", "estadio": "Estadio Azteca", "local": "México", "visitante": "Sudáfrica", "golesLocal": 2, "golesVisitante": 0, "estado": "finalizado" },
+                { "id": 2, "grupo": "A", "fecha": "2026-06-12", "hora": "18:00", "estadio": "Estadio BBVA", "local": "Corea del Sur", "visitante": "Chequia", "golesLocal": 1, "golesVisitante": 1, "estado": "finalizado" },
+                { "id": 3, "grupo": "B", "fecha": "2026-06-12", "hora": "16:00", "estadio": "SoFi Stadium", "local": "Estados Unidos", "visitante": "Marruecos", "golesLocal": 1, "golesVisitante": 2, "estado": "finalizado" },
+                { "id": 4, "grupo": "B", "fecha": "2026-06-13", "hora": "13:00", "estadio": "BC Place", "local": "Canadá", "visitante": "Túnez", "golesLocal": 0, "golesVisitante": 0, "estado": "finalizado" },
+                { "id": 5, "grupo": "J", "fecha": "2026-06-15", "hora": "20:00", "estadio": "MetLife Stadium", "local": "Argentina", "visitante": "Austria", "golesLocal": 3, "golesVisitante": 1, "estado": "finalizado" },
+                { "id": 6, "grupo": "J", "fecha": "2026-06-16", "hora": "14:00", "estadio": "Hard Rock Stadium", "local": "Argelia", "visitante": "Jordania", "golesLocal": null, "golesVisitante": null, "estado": "programado" }
+            ]
+        };
 
-        // Endpoint alternativo JSON de datos de fútbol abierto de confianza (CORS libre)
-        const URL_FEED = 'https://raw.githubusercontent.com/openfootball/world-cup/master/2026--north-america/cup.json';
+        let estructuraEquipos = {};
 
-        async function arrancarDashboard() {
-            try {
-                const res = await fetch(URL_FEED);
-                if (!res.ok) throw new Error();
-                const datos = await res.json();
-
-                procesarInformacion(datos);
-                renderizarTablas();
-                renderizarCalendario();
-            } catch (e) {
-                document.getElementById('contenedor-grupos').innerHTML = "⚠️ Error al conectar con el servidor de datos. Reintenta recargando la página.";
-            }
+        function inicializarApp() {
+            generarEquiposDesdePartidos();
+            calcularTablas();
+            renderizarTablas();
+            renderizarCalendario();
         }
 
-        function procesarInformacion(datos) {
-            partidosTorneo = [];
-            clasificacionEquipos = {};
-
-            datos.rounds.forEach(ronda => {
-                ronda.matches.forEach(m => {
-                    partidosTorneo.push({
-                        grupo: m.group || "Fase Final",
-                        fecha: m.date,
-                        hora: m.time || "Por definir",
-                        estadio: m.stadium || m.city || "Sede Oficial",
-                        local: m.team1,
-                        visitante: m.team2,
-                        golesLoc: m.score1,
-                        golesVis: m.score2
-                    });
-
-                    if (m.group) {
-                        if (!clasificacionEquipos[m.team1]) crearNodoEquipo(m.team1, m.group);
-                        if (!clasificacionEquipos[m.team2]) crearNodoEquipo(m.team2, m.group);
-
-                        if (m.score1 !== null && m.score2 !== null) {
-                            calcularPuntosTorneo(m.team1, m.team2, m.score1, m.score2);
-                        }
-                    }
-                });
+        function generarEquiposDesdePartidos() {
+            datosMundial.partidos.forEach(p => {
+                if(!estructuraEquipos[p.local]) {
+                    estructuraEquipos[p.local] = { name: p.local, group: p.grupo, pj:0, g:0, e:0, p:0, gf:0, gc:0, dg:0, pts:0 };
+                }
+                if(!estructuraEquipos[p.visitante]) {
+                    estructuraEquipos[p.visitante] = { name: p.visitante, group: p.grupo, pj:0, g:0, e:0, p:0, gf:0, gc:0, dg:0, pts:0 };
+                }
             });
         }
 
-        function crearNodoEquipo(name, grupo) {
-            clasificacionEquipos[name] = { name, group: grupo, pj: 0, dg: 0, pts: 0, gf: 0, gc: 0 };
-        }
+        function calcularTablas() {
+            datosMundial.partidos.forEach(p => {
+                if (p.estado === "finalizado" && p.golesLocal !== null && p.golesVisitante !== null) {
+                    let loc = estructuraEquipos[p.local];
+                    let vis = estructuraEquipos[p.visitante];
+                    
+                    loc.pj++; vis.pj++;
+                    loc.gf += p.golesLocal; loc.gc += p.golesVisitante;
+                    vis.gf += p.golesVisitante; vis.gc += p.golesLocal;
 
-        function calcularPuntosTorneo(t1, t2, s1, s2) {
-            let e1 = clasificacionEquipos[t1];
-            let e2 = clasificacionEquipos[t2];
-            e1.pj++; e2.pj++;
-            e1.gf += s1; e1.gc += s2;
-            e2.gf += s2; e2.gc += s1;
-
-            if (s1 > s2) e1.pts += 3;
-            else if (s1 < s2) e2.pts += 3;
-            else { e1.pts += 1; e2.pts += 1; }
-            e1.dg = e1.gf - e1.gc; e2.dg = e2.gf - e2.gc;
+                    if(p.golesLocal > p.golesVisitante) {
+                        loc.g++; loc.pts += 3; vis.p++;
+                    } else if(p.golesLocal < p.golesVisitante) {
+                        vis.g++; vis.pts += 3; loc.p++;
+                    } else {
+                        loc.e++; loc.pts += 1; vis.e++; vis.pts += 1;
+                    }
+                    loc.dg = loc.gf - loc.gc;
+                    vis.dg = vis.gf - vis.gc;
+                }
+            });
         }
 
         function renderizarTablas() {
             const contenedor = document.getElementById('contenedor-grupos');
             contenedor.innerHTML = '';
 
-            const grupos = [...new Set(Object.values(clasificacionEquipos).map(e => e.group))].sort();
+            const letrasGrupos = [...new Set(Object.values(estructuraEquipos).map(e => e.group))].sort();
 
-            grupos.forEach(g => {
-                let equipos = Object.values(clasificacionEquipos)
-                    .filter(e => e.group === g)
+            letrasGrupos.forEach(letra => {
+                let equiposGrupo = Object.values(estructuraEquipos)
+                    .filter(e => e.group === letra)
                     .sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
 
                 const caja = document.createElement('div');
                 caja.className = 'group-box';
                 
-                let html = `<h3>${g.toUpperCase().replace('GROUP ', 'GRUPO ')}</h3><table>`;
-                html += `<thead><tr><th>#</th><th class="txt-left">Equipo</th><th>PJ</th><th>DG</th><th>PTS</th></tr></thead><tbody>`;
+                let tabla = `
+                    <h3>GRUPO ${letra}</h3>
+                    <table>
+                        <thead>
+                            <tr><th>#</th><th class="txt-left">Equipo</th><th>PJ</th><th>DG</th><th>PTS</th></tr>
+                        </thead>
+                        <tbody>
+                `;
 
-                equipos.forEach((eq, i) => {
-                    let top = i < 2 ? 'class="top-two"' : '';
-                    html += `<tr ${top}><td>${i+1}</td><td class="txt-left">${eq.name}</td><td>${eq.pj}</td><td>${eq.dg > 0 ? '+' + eq.dg : eq.dg}</td><td><strong>${eq.pts}</strong></td></tr>`;
+                equiposGrupo.forEach((eq, i) => {
+                    let claseClasificado = i < 2 ? 'class="top-two"' : '';
+                    tabla += `
+                        <tr ${claseClasificado}>
+                            <td>${i+1}</td>
+                            <td class="txt-left">${eq.name}</td>
+                            <td>${eq.pj}</td>
+                            <td>${eq.dg > 0 ? '+' + eq.dg : eq.dg}</td>
+                            <td><strong>${eq.pts}</strong></td>
+                        </tr>
+                    `;
                 });
 
-                html += '</tbody></table>';
-                caja.innerHTML = html;
+                tabla += '</tbody></table>';
+                caja.innerHTML = tabla;
                 contenedor.appendChild(caja);
             });
         }
@@ -163,22 +169,25 @@
             const lista = document.getElementById('lista-partidos');
             lista.innerHTML = '';
 
-            partidosTorneo.forEach(p => {
+            datosMundial.partidos.forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'match-card';
                 card.innerHTML = `
                     <div class="match-meta">
-                        <div><strong>${p.grupo.replace('Group ', 'Grupo ')}</strong></div>
+                        <div><strong>Grupo ${p.grupo}</strong></div>
                         <div>📅 ${p.fecha} - ⏰ ${p.hora}</div>
+                        <div style="font-size:0.75rem;">🏟️ ${p.estadio}</div>
                     </div>
                     <div class="match-display">
                         <span style="text-align: right; width: 40%;">${p.local}</span>
-                        <span class="score">${p.golesLoc !== null ? p.golesLoc : '-'}</span>
-                        <span style="color: #aaa;">vs</span>
-                        <span class="score">${p.golesVis !== null ? p.golesVis : '-'}</span>
+                        <span class="score">${p.golesLocal !== null ? p.golesLocal : '-'}</span>
+                        <span style="color: #94a3b8; font-size: 0.85rem;">vs</span>
+                        <span class="score">${p.golesVisitante !== null ? p.golesVisitante : '-'}</span>
                         <span style="text-align: left; width: 40%;">${p.visitante}</span>
                     </div>
-                    <div class="status-badge">${p.golesLoc !== null ? '✅ Fin' : '⏳ Disp.'}</div>
+                    <div class="status-badge status-${p.estado}">
+                        ${p.estado === 'finalizado' ? '✅ Fin' : '⏳ Disp.'}
+                    </div>
                 `;
                 lista.appendChild(card);
             });
@@ -191,7 +200,7 @@
             document.getElementById('btn-' + id).classList.add('active');
         }
 
-        arrancarDashboard();
+        inicializarApp();
     </script>
 </body>
 </html>
