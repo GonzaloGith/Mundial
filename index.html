@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mundial 2026 - En Vivo GitHub</title>
+    <title>Mundial 2026 - En Vivo</title>
     <style>
         :root {
             --primary: #0f172a;
@@ -12,37 +13,37 @@
             --card: #ffffff;
             --text: #334155;
             --accent: #10b981;
+            --third-place: #f59e0b;
+            --eliminated: #ef4444;
         }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         header { background: var(--primary); color: white; text-align: center; padding: 1.5rem; }
-        nav { display: flex; justify-content: center; background: #1e293b; }
-        nav button { background: transparent; border: none; color: white; padding: 1rem 2rem; font-size: 1rem; cursor: pointer; font-weight: bold; }
+        nav { display: flex; justify-content: center; background: #1e293b; flex-wrap: wrap; }
+        nav button { background: transparent; border: none; color: white; padding: 1rem 1.5rem; font-size: 1rem; cursor: pointer; font-weight: bold; }
         nav button.active { background: rgba(255,255,255,0.15); border-bottom: 4px solid var(--secondary); }
         main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        /* Estilos Calendario */
-        .match-card { background: var(--card); border-radius: 8px; padding: 1.2rem; margin: 0.8rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .match-meta { font-size: 0.85rem; color: #64748b; width: 30%; }
-        .match-display { display: flex; justify-content: center; align-items: center; gap: 1rem; width: 45%; font-size: 1.1rem; font-weight: bold; }
-        .score { background: #f1f5f9; padding: 0.4rem 0.8rem; border-radius: 6px; min-width: 25px; text-align: center; color: #0f172a; }
-        .status-badge { width: 25%; text-align: right; font-size: 0.85rem; font-weight: bold; }
-        .status-FT { color: #64748b; }
-        .status-NS { color: var(--secondary); }
-        .status-LIVE { color: #ef4444; animation: pulse 1s infinite; }
-
-        /* Estilos Tablas */
-        .grid-grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
+        .grid-grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; }
         .group-box { background: var(--card); border-radius: 8px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .group-box h3 { margin-top: 0; border-bottom: 2px solid var(--secondary); padding-bottom: 0.4rem; color: var(--primary); }
         table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: center; }
         th { background: #f8fafc; padding: 0.6rem; color: #64748b; }
         td { padding: 0.6rem 0.3rem; border-bottom: 1px solid #f1f5f9; }
         .txt-left { text-align: left; font-weight: bold; }
-        .top-two { border-left: 4px solid var(--accent); }
+        
+        .top-two { border-left: 4px solid var(--accent); background: #f0fdf4; }
+        .best-third-qualified { border-left: 4px solid var(--third-place); background: #fffbeb; }
+        .out { border-left: 4px solid var(--eliminated); background: #fef2f2; opacity: 0.8; }
 
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .match-card { background: var(--card); border-radius: 8px; padding: 1.2rem; margin: 0.8rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .match-meta { font-size: 0.85rem; color: #64748b; width: 30%; }
+        .match-display { display: flex; justify-content: center; align-items: center; gap: 0.5rem; width: 50%; font-size: 1rem; font-weight: bold; }
+        .score { background: #f1f5f9; padding: 0.4rem 0.6rem; border-radius: 6px; min-width: 20px; text-align: center; color: #0f172a; }
+        .status-badge { width: 20%; text-align: right; font-size: 0.85rem; font-weight: bold; }
+        
+        #loading { text-align: center; padding: 2rem; font-size: 1.2rem; font-weight: bold; color: var(--secondary); }
     </style>
 </head>
 <body>
@@ -53,168 +54,162 @@
     </header>
 
     <nav>
-        <button onclick="verPestana('fechas')" id="btn-fechas" class="active">Fechas y Partidos</button>
-        <button onclick="verPestana('grupos')" id="btn-grupos">Tablas de Grupos</button>
+        <button onclick="verPestana('grupos')" id="btn-grupos" class="active">Tablas de Grupos</button>
+        <button onclick="verPestana('terceros')" id="btn-terceros">Mejores Terceros</button>
+        <button onclick="verPestana('fechas')" id="btn-fechas">Fixture de Partidos</button>
     </nav>
 
     <main>
-        <section id="fechas" class="tab-content active">
-            <h2>Fixture y Resultados en Tiempo Real</h2>
-            <div id="lista-partidos">Conectando con el servidor deportivo de respaldo...</div>
-        </section>
+        <div id="loading">⏳ Conectando con los servidores del Mundial y descargando goles reales...</div>
 
         <section id="grupos" class="tab-content">
-            <h2>Posiciones de los Grupos</h2>
-            <div id="contenedor-grupos" class="grid-grupos">Cargando tablas oficiales...</div>
+            <h2>Posiciones de los 12 Grupos Oficiales</h2>
+            <div id="contenedor-grupos" class="grid-grupos"></div>
+        </section>
+
+        <section id="terceros" class="tab-content">
+            <h2>Tabla Comparativa de Terceros</h2>
+            <p>Clasifican a la siguiente ronda los 8 mejores de esta tabla.</p>
+            <div style="background:white; border-radius:8px; padding:1rem; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr><th>#</th><th>Grupo</th><th>Equipo</th><th>PJ</th><th>DG</th><th>GF</th><th>PTS</th><th>Estado</th></tr>
+                    </thead>
+                    <tbody id="cuerpo-terceros"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="fechas" class="tab-content">
+            <h2>Fixture General de Partidos</h2>
+            <div id="lista-partidos"></div>
         </section>
     </main>
 
     <script>
-        let partidosMundial = [];
+        // Tu token sin espacios
+        const API_TOKEN = "8c009beb04204a25a25c2a351e9b14a3"; 
+        
+        // Usamos corsproxy.io que sí reenvía los headers personalizados intactos hacia la API
+        const URL_TABLAS = "https://corsproxy.io/?" + encodeURIComponent("https://api.football-data.org/v4/competitions/WC/standings");
+        const URL_PARTIDOS = "https://corsproxy.io/?" + encodeURIComponent("https://api.football-data.org/v4/competitions/WC/matches");
+
         let estructuraEquipos = {};
+        let listaMejoresTerceros = [];
+        let listaPartidos = [];
 
-        // URL pública alternativa que no bloquea a GitHub Pages
-        const URL_DATA = 'https://raw.githubusercontent.com/openfootball/world-cup/master/2026--north-america/cup.json';
-
-        async function inicializarApp() {
+        async function cargarDatosMundial() {
             try {
-                const respuesta = await fetch(URL_DATA);
-                if (!respuesta.ok) throw new Error("Error cargando los datos");
-                const datos = await respuesta.json();
+                // Pasamos la cabecera de autenticación requerida por la API
+                const config = {
+                    headers: { "X-Auth-Token": API_TOKEN }
+                };
 
-                // Procesar la estructura del openfootball JSON para adaptarla a nuestra app
-                maquetarDatos(datos);
+                // Petición de Tablas
+                const resTablas = await fetch(URL_TABLAS, config);
+                const jsonTablas = await resTablas.json();
 
-                renderizarCalendario();
-                renderizarTablas();
+                // Petición de Partidos
+                const resPartidos = await fetch(URL_PARTIDOS, config);
+                const jsonPartidos = await resPartidos.json();
 
+                listaPartidos = jsonPartidos.matches || [];
+                procesarDatosAPI(jsonTablas.standings);
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('grupos').classList.add('active');
+                
+                dibujarTablas();
             } catch (error) {
-                document.getElementById('lista-partidos').innerHTML = "❌ Error al sincronizar los datos en vivo. Reintenta en unos instantes.";
                 console.error(error);
+                document.getElementById('loading').innerHTML = "❌ Error al sincronizar los datos en vivo. Reintenta en unos instantes.";
             }
         }
 
-        function maquetarDatos(datos) {
-            partidosMundial = [];
+        function procesarDatosAPI(standings) {
+            if(!standings) return;
             estructuraEquipos = {};
+            let tercerosTemporales = [];
 
-            datos.rounds.forEach(ronda => {
-                ronda.matches.forEach(m => {
-                    // Guardar partido adaptado
-                    partidosMundial.push({
-                        grupo: m.group || "Fase Final",
-                        fecha: m.date,
-                        hora: m.time || "Por definir",
-                        venue: m.stadium || m.city || "Sede Oficial",
-                        homeTeam: m.team1,
-                        awayTeam: m.team2,
-                        scoreHome: m.score1,
-                        scoreAway: m.score2,
-                        status: m.score1 !== null ? 'FT' : 'NS'
-                    });
-
-                    // Construir tabla de posiciones dinámicamente si es fase de grupos
-                    if (m.group) {
-                        if (!estructuraEquipos[m.team1]) inicializarEquipo(m.team1, m.group);
-                        if (!estructuraEquipos[m.team2]) inicializarEquipo(m.team2, m.group);
-
-                        if (m.score1 !== null && m.score2 !== null) {
-                            calcularResultado(m.team1, m.team2, m.score1, m.score2);
-                        }
-                    }
-                });
-            });
-        }
-
-        function inicializarEquipo(name, grupo) {
-            estructuraEquipos[name] = { name, group: grupo, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, dg: 0, pts: 0 };
-        }
-
-        function calcularResultado(t1, t2, s1, s2) {
-            let e1 = estructuraEquipos[t1];
-            let e2 = estructuraEquipos[t2];
-
-            e1.pj++; e2.pj++;
-            e1.gf += s1; e1.gc += s2;
-            e2.gf += s2; e2.gc += s1;
-
-            if (s1 > s2) { e1.g++; e1.pts += 3; e2.p++; }
-            else if (s1 < s2) { e2.g++; e2.pts += 3; e1.p++; }
-            else { e1.e++; e1.pts += 1; e2.e++; e2.pts += 1; }
-
-            e1.dg = e1.gf - e1.gc;
-            e2.dg = e2.gf - e2.gc;
-        }
-
-        function renderizarCalendario() {
-            const lista = document.getElementById('lista-partidos');
-            lista.innerHTML = '';
-
-            partidosMundial.forEach(p => {
-                let estadoTexto = p.status === 'FT' ? '✅ Finalizado' : '⏳ Programado';
+            standings.forEach(grupoData => {
+                let letraGrupo = grupoData.group.replace("GROUP_", "");
                 
-                const card = document.createElement('div');
-                card.className = 'match-card';
-                card.innerHTML = `
-                    <div class="match-meta">
-                        <div><strong>${p.grupo}</strong></div>
-                        <div>📅 ${p.fecha} - ⏰ ${p.hora}</div>
-                        <div style="font-size:0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🏟️ ${p.venue}</div>
-                    </div>
-                    <div class="match-display">
-                        <span style="text-align: right; width: 40%;">${p.homeTeam}</span>
-                        <span class="score">${p.scoreHome !== null ? p.scoreHome : '-'}</span>
-                        <span style="color: #94a3b8; font-size: 0.85rem;">vs</span>
-                        <span class="score">${p.scoreAway !== null ? p.scoreAway : '-'}</span>
-                        <span style="text-align: left; width: 40%;">${p.awayTeam}</span>
-                    </div>
-                    <div class="status-badge status-${p.status}">
-                        ${estadoTexto}
-                    </div>
-                `;
-                lista.appendChild(card);
-            });
-        }
-
-        function renderizarTablas() {
-            const contenedor = document.getElementById('contenedor-grupos');
-            contenedor.innerHTML = '';
-
-            const gruposUnicos = [...new Set(Object.values(estructuraEquipos).map(e => e.group))].sort();
-
-            gruposUnicos.forEach(grupo => {
-                let equipos = Object.values(estructuraEquipos)
-                    .filter(e => e.group === grupo)
-                    .sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
-
-                const caja = document.createElement('div');
-                caja.className = 'group-box';
-                
-                let tablaHTML = `
-                    <h3>${grupo.toUpperCase()}</h3>
-                    <table>
-                        <thead>
-                            <tr><th>#</th><th class="txt-left">Equipo</th><th>PJ</th><th>DG</th><th>PTS</th></tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                equipos.forEach((eq, i) => {
-                    let claseClasificado = i < 2 ? 'class="top-two"' : '';
-                    tablaHTML += `
-                        <tr ${claseClasificado}>
-                            <td>${i+1}</td>
-                            <td class="txt-left">${eq.name}</td>
-                            <td>${eq.pj}</td>
-                            <td>${eq.dg > 0 ? '+' + eq.dg : eq.dg}</td>
-                            <td><strong>${eq.pts}</strong></td>
-                        </tr>
-                    `;
+                let arrayEquipos = grupoData.table.map((row, idx) => {
+                    let eq = {
+                        name: row.team.tla || row.team.name,
+                        group: letraGrupo,
+                        pj: row.playedGames,
+                        gf: row.goalsFor,
+                        gc: row.goalsAgainst,
+                        dg: row.goalDifference,
+                        pts: row.points,
+                        statusClass: 'out'
+                    };
+                    estructuraEquipos[eq.name] = eq;
+                    return eq;
                 });
 
-                tablaHTML += '</tbody></table>';
-                caja.innerHTML = tablaHTML;
-                contenedor.appendChild(caja);
+                if(arrayEquipos[0]) arrayEquipos[0].statusClass = 'top-two';
+                if(arrayEquipos[1]) arrayEquipos[1].statusClass = 'top-two';
+                if(arrayEquipos[2]) tercerosTemporales.push(arrayEquipos[2]);
+            });
+
+            tercerosTemporales.sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
+            listaMejoresTerceros = tercerosTemporales;
+
+            for(let i = 0; i < Math.min(8, listaMejoresTerceros.length); i++) {
+                listaMejoresTerceros[i].statusClass = 'best-third-qualified';
+            }
+        }
+
+        function dibujarTablas() {
+            const contenedorG = document.getElementById('contenedor-grupos');
+            contenedorG.innerHTML = '';
+            
+            let gruposAgrupados = {};
+            Object.values(estructuraEquipos).forEach(e => {
+                if(!gruposAgrupados[e.group]) gruposAgrupados[e.group] = [];
+                gruposAgrupados[e.group].push(e);
+            });
+
+            Object.keys(gruposAgrupados).sort().forEach(letra => {
+                let equipos = gruposAgrupados[letra].sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
+                let div = document.createElement('div');
+                div.className = 'group-box';
+                let h = `<h3>GRUPO ${letra}</h3><table><thead><tr><th>#</th><th class="txt-left">Equipo</th><th>DG</th><th>PTS</th></tr></thead><tbody>`;
+                equipos.forEach((eq, idx) => {
+                    h += `<tr class="${eq.statusClass}"><td>${idx+1}</td><td class="txt-left">${eq.name}</td><td>${eq.dg > 0 ? '+' + eq.dg : eq.dg}</td><td><strong>${eq.pts}</strong></td></tr>`;
+                });
+                h += '</tbody></table>';
+                div.innerHTML = h;
+                contenedorG.appendChild(div);
+            });
+
+            const cuerpoT = document.getElementById('cuerpo-terceros');
+            cuerpoT.innerHTML = '';
+            listaMejoresTerceros.forEach((eq, idx) => {
+                let pasa = eq.statusClass === 'best-third-qualified';
+                cuerpoT.innerHTML += `<tr class="${eq.statusClass}"><td>${idx+1}</td><td>G-${eq.group}</td><td class="txt-left">${eq.name}</td><td>${eq.pj}</td><td>${eq.dg}</td><td>${eq.gf}</td><td>${eq.pts}</td><td><strong>${pasa?'✅ Clasifica':'❌ Fuera'}</strong></td></tr>`;
+            });
+
+            const listaP = document.getElementById('lista-partidos');
+            listaP.innerHTML = '';
+            listaPartidos.forEach(p => {
+                let gLocal = p.score.fullTime.home !== null ? p.score.fullTime.home : '-';
+                let gVis = p.score.fullTime.away !== null ? p.score.fullTime.away : '-';
+                let estadoTxt = p.status === 'FINISHED' ? '✅ Fin' : '⏳ Prog.';
+                
+                listaP.innerHTML += `
+                    <div class="match-card">
+                        <div class="match-meta"><div><strong>Grupo ${p.group ? p.group.replace("GROUP_","") : ""}</strong></div><div>📅 ${new Date(p.utcDate).toLocaleDateString()}</div></div>
+                        <div class="match-display">
+                            <span style="text-align:right; width:42%;">${p.homeTeam.tla || p.homeTeam.name}</span>
+                            <span class="score">${gLocal}</span>
+                            <span class="score">${gVis}</span>
+                            <span style="text-align:left; width:42%;">${p.awayTeam.tla || p.awayTeam.name}</span>
+                        </div>
+                        <div class="status-badge">${estadoTxt}</div>
+                    </div>`;
             });
         }
 
@@ -225,7 +220,7 @@
             document.getElementById('btn-' + id).classList.add('active');
         }
 
-        inicializarApp();
+        window.onload = cargarDatosMundial;
     </script>
 </body>
 </html>
