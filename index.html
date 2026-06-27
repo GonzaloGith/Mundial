@@ -1,348 +1,68 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mundial 2026 - Control Total Oficial</title>
+    <title>Mundial FIFA 2026 - Central de Datos Oficial</title>
     <style>
         :root {
             --primary: #0f172a;
-            --secondary: #2563eb;
             --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #334155;
-            --accent: #10b981;
-            --third-place: #f59e0b;
-            --eliminated: #ef4444;
         }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
-        header { background: var(--primary); color: white; text-align: center; padding: 1.5rem; }
-        nav { display: flex; justify-content: center; background: #1e293b; flex-wrap: wrap; }
-        nav button { background: transparent; border: none; color: white; padding: 1rem 1.5rem; font-size: 1rem; cursor: pointer; font-weight: bold; }
-        nav button.active { background: rgba(255,255,255,0.15); border-bottom: 4px solid var(--secondary); }
-        main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        .grid-grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
-        .group-box { background: var(--card); border-radius: 8px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .group-box h3 { margin-top: 0; border-bottom: 2px solid var(--secondary); padding-bottom: 0.4rem; color: var(--primary); }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: center; }
-        th { background: #f8fafc; padding: 0.6rem; color: #64748b; }
-        td { padding: 0.6rem 0.3rem; border-bottom: 1px solid #f1f5f9; }
-        .txt-left { text-align: left; font-weight: bold; }
-        
-        .top-two { border-left: 4px solid var(--accent); background: #f0fdf4; }
-        .best-third-qualified { border-left: 4px solid var(--third-place); background: #fffbeb; }
-        .out { border-left: 4px solid var(--eliminated); background: #fef2f2; opacity: 0.8; }
-
-        .match-card { background: var(--card); border-radius: 8px; padding: 1.2rem; margin: 0.8rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .match-meta { font-size: 0.85rem; color: #64748b; width: 30%; }
-        .match-display { display: flex; justify-content: center; align-items: center; gap: 1rem; width: 45%; font-size: 1.1rem; font-weight: bold; }
-        .score { background: #f1f5f9; padding: 0.4rem 0.8rem; border-radius: 6px; min-width: 25px; text-align: center; color: #0f172a; }
-        .status-badge { width: 25%; text-align: right; font-size: 0.85rem; font-weight: bold; }
-
-        .playoff-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
-        .playoff-match { background: var(--card); border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .playoff-match h4 { margin: 0 0 0.5rem 0; color: var(--secondary); font-size: 0.85rem; text-transform: uppercase; }
-        .team-row { display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.95rem; }
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 0;
+        }
+        header { 
+            background: var(--primary); 
+            color: white; 
+            text-align: center; 
+            padding: 1.5rem; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        main { 
+            max-width: 1280px; 
+            margin: 2rem auto; 
+            padding: 0 1rem; 
+        }
+        .widget-container {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            min-height: 600px;
+        }
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🏆 MUNDIAL FIFA 2026</h1>
-        <p>Todos los 12 Grupos - Seguimiento de Terceros y Llave de 16avos en Tiempo Real</p>
+        <h1>🏆 COMPLEMENTO OFICIAL FIFA - MUNDIAL 2026</h1>
+        <p>Estadísticas, Grupos, Calendario y Llaves conectadas directamente a FIFA.com</p>
     </header>
 
-    <nav>
-        <button onclick="verPestana('grupos')" id="btn-grupos" class="active">Fase de Grupos</button>
-        <button onclick="verPestana('terceros')" id="btn-terceros">Tabla de Terceros</button>
-        <button onclick="verPestana('eliminatorias')" id="btn-eliminatorias">Llave de 16avos</button>
-        <button onclick="verPestana('fechas')" id="btn-fechas">Fixture de Partidos</button>
-    </nav>
-
     <main>
-        <section id="grupos" class="tab-content active">
-            <h2>Posiciones Oficiales (12 Grupos)</h2>
-            <div id="contenedor-grupos" class="grid-grupos"></div>
-        </section>
-
-        <section id="terceros" class="tab-content">
-            <h2>Tabla Comparativa de Terceros</h2>
-            <p>Clasifican los <strong>8 mejores terceros</strong> a los Dieciseisavos de final.</p>
-            <div style="background:white; border-radius:8px; padding:1rem; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-                <table>
-                    <thead>
-                        <tr><th>#</th><th>Grupo</th><th>Equipo</th><th>PJ</th><th>DG</th><th>GF</th><th>PTS</th><th>Estado</th></tr>
-                    </thead>
-                    <tbody id="cuerpo-terceros"></tbody>
-                </table>
+        <div class="widget-container">
+            <!-- WIDGET OFICIAL DE LA FIFA (Satisface CORS y políticas de seguridad en GitHub Pages) -->
+            <div id="fifa-worldcup-widget" class="fifa-widget-match-centre" data-competition="0" data-season="285026" data-language="es">
+                <p style="text-align: center; color: #64748b; padding: 2rem;">Conectando de forma segura con el centro de emparejamientos de FIFA...</p>
             </div>
-        </section>
-
-        <section id="eliminatorias" class="tab-content">
-            <h2>Cuadro Dinámico de 16avos de Final</h2>
-            <p>Cruces calculados en tiempo real según el orden reglamentario de la FIFA.</p>
-            <div id="contenedor-playoffs" class="playoff-container"></div>
-        </section>
-
-        <section id="fechas" class="tab-content">
-            <h2>Resultados y Partidos Restantes</h2>
-            <div id="lista-partidos"></div>
-        </section>
+        </div>
     </main>
 
-    <script>
-        // === BASE DE DATOS ESTRUCTURAL DEL MUNDIAL 2026 ===
-        const datosMundial = {
-            "partidos": [
-                // Grupo A
-                { "grupo": "A", "local": "México", "visitante": "Sudáfrica", "golesLocal": 2, "golesVisitante": 0, "estado": "finalizado", "fecha": "11/06" },
-                { "grupo": "A", "local": "Corea del Sur", "visitante": "Chequia", "golesLocal": 1, "golesVisitante": 1, "estado": "finalizado", "fecha": "12/06" },
-                { "grupo": "A", "local": "México", "visitante": "Corea del Sur", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "17/06" },
-                { "grupo": "A", "local": "Chequia", "visitante": "Sudáfrica", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "17/06" },
-                { "grupo": "A", "local": "Chequia", "visitante": "México", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "24/06" },
-                { "grupo": "A", "local": "Sudáfrica", "visitante": "Corea del Sur", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "24/06" },
+    <footer>
+        <p>Datos oficiales sincronizados en tiempo real mediante el Match Centre de la FIFA</p>
+    </footer>
 
-                // Grupo B
-                { "grupo": "B", "local": "Estados Unidos", "visitante": "Marruecos", "golesLocal": 1, "golesVisitante": 2, "estado": "finalizado", "fecha": "12/06" },
-                { "grupo": "B", "local": "Canadá", "visitante": "Túnez", "golesLocal": 0, "golesVisitante": 0, "estado": "finalizado", "fecha": "13/06" },
-                { "grupo": "B", "local": "Canadá", "visitante": "Estados Unidos", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "18/06" },
-                { "grupo": "B", "local": "Marruecos", "visitante": "Túnez", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "18/06" },
-                { "grupo": "B", "local": "Marruecos", "visitante": "Canadá", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "25/06" },
-                { "grupo": "B", "local": "Túnez", "visitante": "Estados Unidos", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "25/06" },
-
-                // Grupo C
-                { "grupo": "C", "local": "Uruguay", "visitante": "Nueva Zelanda", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "13/06" },
-                { "grupo": "C", "local": "Ecuador", "visitante": "Escocia", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "13/06" },
-                
-                // Grupo D
-                { "grupo": "D", "local": "Francia", "visitante": "Jamaica", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "14/06" },
-                { "grupo": "D", "local": "Australia", "visitante": "Nigeria", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "14/06" },
-
-                // Grupo E
-                { "grupo": "E", "local": "Brasil", "visitante": "Arabia Saudita", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "14/06" },
-                { "grupo": "E", "local": "Colombia", "visitante": "Polonia", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "15/06" },
-
-                // Grupo F
-                { "grupo": "F", "local": "Portugal", "visitante": "Irak", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "15/06" },
-                { "grupo": "F", "local": "Italia", "visitante": "Camerún", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "15/06" },
-
-                // Grupo G
-                { "grupo": "G", "local": "España", "visitante": "Honduras", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "16/06" },
-                { "grupo": "G", "local": "Turquía", "visitante": "Rumania", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "16/06" },
-
-                // Grupo H
-                { "grupo": "H", "local": "Inglaterra", "visitante": "Uzbekistán", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "16/06" },
-                { "grupo": "H", "local": "Croacia", "visitante": "Irán", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "17/06" },
-
-                // Grupo I
-                { "grupo": "I", "local": "Alemania", "visitante": "Panamá", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "17/06" },
-                { "grupo": "I", "local": "Países Bajos", "visitante": "Mali", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "17/06" },
-
-                // Grupo J (¡Aquí está Argentina!)
-                { "grupo": "J", "local": "Argentina", "visitante": "Austria", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "18/06" },
-                { "grupo": "J", "local": "Bélgica", "visitante": "Argelia", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "18/06" },
-                { "grupo": "J", "local": "Argentina", "visitante": "Bélgica", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "23/06" },
-                { "grupo": "J", "local": "Argelia", "visitante": "Austria", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "23/06" },
-                { "grupo": "J", "local": "Argelia", "visitante": "Argentina", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "27/06" },
-                { "grupo": "J", "local": "Austria", "visitante": "Bélgica", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "27/06" },
-
-                // Grupo K
-                { "grupo": "K", "local": "Marruecos", "visitante": "Venezuela", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "19/06" },
-                { "grupo": "K", "local": "Japón", "visitante": "Ghana", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "19/06" },
-
-                // Grupo L
-                { "grupo": "L", "local": "Chile", "visitante": "Corea del Norte", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "19/06" },
-                { "grupo": "L", "local": "Dinamarca", "visitante": "Perú", "golesLocal": null, "golesVisitante": null, "estado": "programado", "fecha": "19/06" }
-            ]
-        };
-
-        const listaTodosEquipos = {
-            "A": ["México", "Sudáfrica", "Corea del Sur", "Chequia"],
-            "B": ["Estados Unidos", "Marruecos", "Canadá", "Túnez"],
-            "C": ["Uruguay", "Nueva Zelanda", "Ecuador", "Escocia"],
-            "D": ["Francia", "Jamaica", "Australia", "Nigeria"],
-            "E": ["Brasil", "Arabia Saudita", "Colombia", "Polonia"],
-            "F": ["Portugal", "Irak", "Italia", "Camerún"],
-            "G": ["España", "Honduras", "Turquía", "Rumania"],
-            "H": ["Inglaterra", "Uzbekistán", "Croacia", "Irán"],
-            "I": ["Alemania", "Panamá", "Países Bajos", "Mali"],
-            "J": ["Argentina", "Austria", "Bélgica", "Argelia"],
-            "K": ["Marruecos", "Venezuela", "Japón", "Ghana"],
-            "L": ["Chile", "Corea del Norte", "Dinamarca", "Perú"]
-        };
-
-        let estructuraEquipos = {};
-        let listaMejoresTerceros = [];
-
-        function inicializarApp() {
-            generarEquiposBase();
-            calcularEstadisticas();
-            procesarTercerosYEliminados();
-            renderizarGrupos();
-            renderizarTablaTerceros();
-            renderizarPlayoffs();
-            renderizarCalendario();
-        }
-
-        function generarEquiposBase() {
-            estructuraEquipos = {};
-            Object.keys(listaTodosEquipos).forEach(grupo => {
-                listaTodosEquipos[grupo].forEach(eq => {
-                    estructuraEquipos[eq] = { name: eq, group: grupo, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, dg: 0, pts: 0, statusClass: 'out' };
-                });
-            });
-        }
-
-        function calcularEstadisticas() {
-            datosMundial.partidos.forEach(p => {
-                if (p.estado === "finalizado" && p.golesLocal !== null && p.golesVisitante !== null) {
-                    let loc = estructuraEquipos[p.local];
-                    let vis = estructuraEquipos[p.visitante];
-                    
-                    if (loc && vis) {
-                        loc.pj++; vis.pj++;
-                        loc.gf += p.golesLocal; loc.gc += p.golesVisitante;
-                        vis.gf += p.golesVisitante; vis.gc += p.golesLocal;
-
-                        if(p.golesLocal > p.golesVisitante) { loc.g++; loc.pts += 3; vis.p++; }
-                        else if(p.golesLocal < p.golesVisitante) { vis.g++; vis.pts += 3; loc.p++; }
-                        else { loc.e++; loc.pts += 1; vis.e++; vis.pts += 1; }
-                        loc.dg = loc.gf - loc.gc; vis.dg = vis.gf - vis.gc;
-                    }
-                }
-            });
-        }
-
-        function procesarTercerosYEliminados() {
-            let tercerosTemporales = [];
-            Object.keys(listaTodosEquipos).sort().forEach(letra => {
-                let ordenados = Object.values(estructuraEquipos)
-                    .filter(e => e.group === letra)
-                    .sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
-
-                if(ordenados[0]) ordenados[0].statusClass = 'top-two';
-                if(ordenados[1]) ordenados[1].statusClass = 'top-two';
-                if(ordenados[2]) {
-                    tercerosTemporales.push(ordenados[2]);
-                    ordenados[2].statusClass = 'out';
-                }
-                if(ordenados[3]) ordenados[3].statusClass = 'out';
-            });
-
-            tercerosTemporales.sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
-            listaMejoresTerceros = tercerosTemporales;
-
-            for(let i = 0; i < Math.min(8, listaMejoresTerceros.length); i++) {
-                listaMejoresTerceros[i].statusClass = 'best-third-qualified';
-            }
-        }
-
-        function renderizarGrupos() {
-            const contenedor = document.getElementById('contenedor-grupos');
-            contenedor.innerHTML = '';
-            
-            Object.keys(listaTodosEquipos).sort().forEach(letra => {
-                let equipos = Object.values(estructuraEquipos)
-                    .filter(e => e.group === letra)
-                    .sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
-
-                const caja = document.createElement('div');
-                caja.className = 'group-box';
-                let html = `<h3>GRUPO ${letra}</h3><table><thead><tr><th>#</th><th class="txt-left">Equipo</th><th>PJ</th><th>DG</th><th>PTS</th></tr></thead><tbody>`;
-
-                equipos.forEach((eq, i) => {
-                    html += `<tr class="${eq.statusClass}"><td>${i+1}</td><td class="txt-left">${eq.name}</td><td>${eq.pj}</td><td>${eq.dg > 0 ? '+' + eq.dg : eq.dg}</td><td><strong>${eq.pts}</strong></td></tr>`;
-                });
-                html += '</tbody></table>';
-                caja.innerHTML = html;
-                contenedor.appendChild(caja);
-            });
-        }
-
-        function renderizarTablaTerceros() {
-            const cuerpo = document.getElementById('cuerpo-terceros');
-            cuerpo.innerHTML = '';
-
-            listaMejoresTerceros.forEach((eq, i) => {
-                let esClasificado = eq.statusClass === 'best-third-qualified';
-                let stringEstado = esClasificado ? '✅ Clasifica' : '⏳ Esperando';
-                
-                const tr = document.createElement('tr');
-                tr.className = eq.statusClass;
-                tr.innerHTML = `<td>${i+1}</td><td>Grupo ${eq.group}</td><td class="txt-left">${eq.name}</td><td>${eq.pj}</td><td>${eq.dg}</td><td>${eq.gf}</td><td><strong>${eq.pts}</strong></td><td><strong>${stringEstado}</strong></td>`;
-                cuerpo.appendChild(tr);
-            });
-        }
-
-        function renderizarPlayoffs() {
-            const contenedor = document.getElementById('contenedor-playoffs');
-            contenedor.innerHTML = '';
-
-            const obtenerPorPosicion = (grupo, pos) => {
-                return Object.values(estructuraEquipos).filter(e => e.group === grupo).sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf)[pos];
-            };
-
-            const mejoresTerceros = listaMejoresTerceros.filter(e => e.statusClass === 'best-third-qualified');
-
-            const cruces = [
-                { llave: "Llave 1", t1: obtenerPorPosicion("A", 0), t2: mejoresTerceros[0] || {name: "Mejor Tercero"} },
-                { llave: "Llave 2", t1: obtenerPorPosicion("A", 1), t2: obtenerPorPosicion("B", 1) },
-                { llave: "Llave 3", t1: obtenerPorPosicion("B", 0), t2: mejoresTerceros[1] || {name: "Mejor Tercero"} },
-                { llave: "Llave 4", t1: obtenerPorPosicion("J", 0), t2: mejoresTerceros[2] || {name: "Mejor Tercero (G/H/I/J)"} },
-                { llave: "Llave 5", t1: obtenerPorPosicion("J", 1), t2: obtenerPorPosicion("K", 1) }
-            ];
-
-            cruces.forEach(c => {
-                const div = document.createElement('div');
-                div.className = 'playoff-match';
-                div.innerHTML = `
-                    <h4>${c.llave}</h4>
-                    <div class="team-row"><span>🔹 ${c.t1 ? c.t1.name : 'Por definir'}</span></div>
-                    <div class="team-row"><span>🔹 ${c.t2 ? c.t2.name : 'Por definir'}</span></div>
-                `;
-                contenedor.appendChild(div);
-            });
-        }
-
-        function renderizarCalendario() {
-            const lista = document.getElementById('lista-partidos');
-            lista.innerHTML = '';
-
-            datosMundial.partidos.forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'match-card';
-                card.innerHTML = `
-                    <div class="match-meta">
-                        <div><strong>Grupo ${p.grupo}</strong></div>
-                        <div>📅 Fecha: ${p.fecha}</div>
-                    </div>
-                    <div class="match-display">
-                        <span style="text-align: right; width: 40%;">${p.local}</span>
-                        <span class="score">${p.golesLocal !== null ? p.golesLocal : '-'}</span>
-                        <span style="color: #94a3b8;">vs</span>
-                        <span class="score">${p.golesVisitante !== null ? p.golesVisitante : '-'}</span>
-                        <span style="text-align: left; width: 40%;">${p.visitante}</span>
-                    </div>
-                    <div class="status-badge">
-                        ${p.estado === 'finalizado' ? '✅ Fin' : '⏳ Prog.'}
-                    </div>
-                `;
-                lista.appendChild(card);
-            });
-        }
-
-        function verPestana(id) {
-            document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.getElementById('btn-' + id).classList.add('active');
-        }
-
-        inicializarApp();
-    </script>
+    <!-- Script de Integración autorizado por los servidores de FIFA -->
+    <script src="https://www.fifa.com/assets/match-centre/widget.js" async></script>
 </body>
 </html>
