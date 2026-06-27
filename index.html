@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mundial 2026 - Posiciones y Fixture</title>
+    <title>Mundial 2026 - Tablas, Terceros y 16avos</title>
     <style>
         :root {
             --primary: #0f172a;
@@ -12,16 +12,32 @@
             --card: #ffffff;
             --text: #334155;
             --accent: #10b981;
+            --third-place: #f59e0b;
+            --eliminated: #ef4444;
         }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         header { background: var(--primary); color: white; text-align: center; padding: 1.5rem; }
-        nav { display: flex; justify-content: center; background: #1e293b; }
-        nav button { background: transparent; border: none; color: white; padding: 1rem 2rem; font-size: 1rem; cursor: pointer; font-weight: bold; }
+        nav { display: flex; justify-content: center; background: #1e293b; flex-wrap: wrap; }
+        nav button { background: transparent; border: none; color: white; padding: 1rem 1.5rem; font-size: 1rem; cursor: pointer; font-weight: bold; }
         nav button.active { background: rgba(255,255,255,0.15); border-bottom: 4px solid var(--secondary); }
         main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
+        /* Estilos Tablas y Grupos */
+        .grid-grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
+        .group-box { background: var(--card); border-radius: 8px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .group-box h3 { margin-top: 0; border-bottom: 2px solid var(--secondary); padding-bottom: 0.4rem; color: var(--primary); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: center; }
+        th { background: #f8fafc; padding: 0.6rem; color: #64748b; }
+        td { padding: 0.6rem 0.3rem; border-bottom: 1px solid #f1f5f9; }
+        .txt-left { text-align: left; font-weight: bold; }
+        
+        /* Reglas de clasificación visuales */
+        .top-two { border-left: 4px solid var(--accent); background: #f0fdf4; }
+        .best-third-qualified { border-left: 4px solid var(--third-place); background: #fffbeb; }
+        .out { border-left: 4px solid var(--eliminated); background: #fef2f2; opacity: 0.8; }
+
         /* Estilos Calendario */
         .match-card { background: var(--card); border-radius: 8px; padding: 1.2rem; margin: 0.8rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .match-meta { font-size: 0.85rem; color: #64748b; width: 30%; }
@@ -31,76 +47,115 @@
         .status-finalizado { color: #64748b; }
         .status-programado { color: var(--secondary); }
 
-        /* Estilos Tablas */
-        .grid-grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
-        .group-box { background: var(--card); border-radius: 8px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .group-box h3 { margin-top: 0; border-bottom: 2px solid var(--secondary); padding-bottom: 0.4rem; color: var(--primary); }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: center; }
-        th { background: #f8fafc; padding: 0.6rem; color: #64748b; }
-        td { padding: 0.6rem 0.3rem; border-bottom: 1px solid #f1f5f9; }
-        .txt-left { text-align: left; font-weight: bold; }
-        .top-two { border-left: 4px solid var(--accent); }
+        /* Estilos de Llaves / Playoff */
+        .playoff-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+        .playoff-match { background: var(--card); border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .playoff-match h4 { margin: 0 0 0.5rem 0; color: var(--secondary); font-size: 0.85rem; text-transform: uppercase; }
+        .team-row { display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.95rem; }
+        .team-name { font-weight: 500; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🏆 MUNDIAL 2026</h1>
-        <p>Calendario Oficial y Tabla de Posiciones de los Grupos</p>
+        <h1>🏆 MUNDIAL FIFA 2026</h1>
+        <p>Formato de 48 Equipos: Clasificación de Terceros y Cuadro de 16avos</p>
     </header>
 
     <nav>
-        <button onclick="verPestana('grupos')" id="btn-grupos" class="active">Tablas de Grupos</button>
-        <button onclick="verPestana('fechas')" id="btn-fechas">Fechas y Partidos</button>
+        <button onclick="verPestana('grupos')" id="btn-grupos" class="active">Fase de Grupos</button>
+        <button onclick="verPestana('terceros')" id="btn-terceros">Tabla de Terceros</button>
+        <button onclick="verPestana('eliminatorias')" id="btn-eliminatorias">Llave de 16avos</button>
+        <button onclick="verPestana('fechas')" id="btn-fechas">Fixture de Partidos</button>
     </nav>
 
     <main>
         <section id="grupos" class="tab-content active">
             <h2>Posiciones de los Grupos</h2>
-            <div id="contenedor-grupos" class="grid-grupos">Cargando tablas...</div>
+            <div id="contenedor-grupos" class="grid-grupos"></div>
+        </section>
+
+        <section id="terceros" class="tab-content">
+            <h2>Tabla Comparativa de Terceros</h2>
+            <p>Clasifican a la siguiente ronda los <strong>8 mejores terceros</strong> de los 12 grupos totales.</p>
+            <div style="background:white; border-radius:8px; padding:1rem; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                <table id="tabla-terceros-completa">
+                    <thead>
+                        <tr><th>#</th><th>Grupo</th><th>Equipo</th><th>PJ</th><th>DG</th><th>GF</th><th>PTS</th><th>Estado</th></tr>
+                    </thead>
+                    <tbody id="cuerpo-terceros"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="eliminatorias" class="tab-content">
+            <h2>Cuadro Próximos de 16avos de Final</h2>
+            <p>Cruces automatizados basados en las posiciones simuladas y reales actuales.</p>
+            <div id="contenedor-playoffs" class="playoff-container"></div>
         </section>
 
         <section id="fechas" class="tab-content">
-            <h2>Fixture y Resultados</h2>
-            <div id="lista-partidos">Cargando fixture...</div>
+            <h2>Fixture y Calendario Restante</h2>
+            <div id="lista-partidos"></div>
         </section>
     </main>
 
     <script>
-        // === TU BASE DE DATOS LOCAL PROPIA ===
-        // Puedes cambiar los goles de 'null' a números reales y pasar el estado a "finalizado"
+        // === BASE DE DATOS LOCAL AMPLIADA (EJEMPLOS GRUPOS A, B, J Y PARTIDOS RESTANTES) ===
         const datosMundial = {
             "partidos": [
-                { "id": 1, "grupo": "A", "fecha": "2026-06-11", "hora": "15:00", "estadio": "Estadio Azteca", "local": "México", "visitante": "Sudáfrica", "golesLocal": 2, "golesVisitante": 0, "estado": "finalizado" },
-                { "id": 2, "grupo": "A", "fecha": "2026-06-12", "hora": "18:00", "estadio": "Estadio BBVA", "local": "Corea del Sur", "visitante": "Chequia", "golesLocal": 1, "golesVisitante": 1, "estado": "finalizado" },
-                { "id": 3, "grupo": "B", "fecha": "2026-06-12", "hora": "16:00", "estadio": "SoFi Stadium", "local": "Estados Unidos", "visitante": "Marruecos", "golesLocal": 1, "golesVisitante": 2, "estado": "finalizado" },
-                { "id": 4, "grupo": "B", "fecha": "2026-06-13", "hora": "13:00", "estadio": "BC Place", "local": "Canadá", "visitante": "Túnez", "golesLocal": 0, "golesVisitante": 0, "estado": "finalizado" },
-                { "id": 5, "grupo": "J", "fecha": "2026-06-15", "hora": "20:00", "estadio": "MetLife Stadium", "local": "Argentina", "visitante": "Austria", "golesLocal": 3, "golesVisitante": 1, "estado": "finalizado" },
-                { "id": 6, "grupo": "J", "fecha": "2026-06-16", "hora": "14:00", "estadio": "Hard Rock Stadium", "local": "Argelia", "visitante": "Jordania", "golesLocal": null, "golesVisitante": null, "estado": "programado" }
+                // Grupo A - Completado
+                { "grupo": "A", "fecha": "2026-06-11", "hora": "15:00", "estadio": "Estadio Azteca", "local": "México", "visitante": "Sudáfrica", "golesLocal": 2, "golesVisitante": 0, "estado": "finalizado" },
+                { "grupo": "A", "fecha": "2026-06-12", "hora": "18:00", "estadio": "Estadio BBVA", "local": "Corea del Sur", "visitante": "Chequia", "golesLocal": 1, "golesVisitante": 1, "estado": "finalizado" },
+                { "grupo": "A", "fecha": "2026-06-17", "hora": "16:00", "estadio": "Estadio Azteca", "local": "México", "visitante": "Corea del Sur", "golesLocal": 2, "golesVisitante": 1, "estado": "finalizado" },
+                { "grupo": "A", "fecha": "2026-06-17", "hora": "19:00", "estadio": "Estadio BBVA", "local": "Chequia", "visitante": "Sudáfrica", "golesLocal": 0, "golesVisitante": 2, "estado": "finalizado" },
+                { "grupo": "A", "fecha": "2026-06-24", "hora": "16:00", "estadio": "Estadio Jalisco", "local": "Chequia", "visitante": "México", "golesLocal": 1, "golesVisitante": 3, "estado": "finalizado" },
+                { "grupo": "A", "fecha": "2026-06-24", "hora": "16:00", "estadio": "Estadio Azteca", "local": "Sudáfrica", "visitante": "Corea del Sur", "golesLocal": 0, "golesVisitante": 2, "estado": "finalizado" },
+
+                // Grupo B - Completado
+                { "grupo": "B", "fecha": "2026-06-12", "hora": "16:00", "estadio": "SoFi Stadium", "local": "Estados Unidos", "visitante": "Marruecos", "golesLocal": 1, "golesVisitante": 2, "estado": "finalizado" },
+                { "grupo": "B", "fecha": "2026-06-13", "hora": "13:00", "estadio": "BC Place", "local": "Canadá", "visitante": "Túnez", "golesLocal": 0, "golesVisitante": 0, "estado": "finalizado" },
+                { "grupo": "B", "fecha": "2026-06-18", "hora": "14:00", "estadio": "Lumen Field", "local": "Canadá", "visitante": "Estados Unidos", "golesLocal": 1, "golesVisitante": 2, "estado": "finalizado" },
+                { "grupo": "B", "fecha": "2026-06-18", "hora": "17:00", "estadio": "Levi's Stadium", "local": "Marruecos", "visitante": "Túnez", "golesLocal": 3, "golesVisitante": 1, "estado": "finalizado" },
+                { "grupo": "B", "fecha": "2026-06-25", "hora": "15:00", "estadio": "SoFi Stadium", "local": "Marruecos", "visitante": "Canadá", "golesLocal": 1, "golesVisitante": 1, "estado": "finalizado" },
+                { "grupo": "B", "fecha": "2026-06-25", "hora": "15:00", "estadio": "Levi's Stadium", "local": "Túnez", "visitante": "Estados Unidos", "golesLocal": 0, "golesVisitante": 2, "estado": "finalizado" },
+
+                // Grupo J - Completado
+                { "grupo": "J", "fecha": "2026-06-15", "hora": "20:00", "estadio": "MetLife Stadium", "local": "Argentina", "visitante": "Austria", "golesLocal": 3, "golesVisitante": 1, "estado": "finalizado" },
+                { "grupo": "J", "fecha": "2026-06-16", "hora": "14:00", "estadio": "Hard Rock Stadium", "local": "Argelia", "visitante": "Jordania", "golesLocal": 1, "golesVisitante": 0, "estado": "finalizado" },
+                { "grupo": "J", "fecha": "2026-06-20", "hora": "18:00", "estadio": "Lincoln Financial Field", "local": "Argentina", "visitante": "Argelia", "golesLocal": 2, "golesVisitante": 0, "estado": "finalizado" },
+                { "grupo": "J", "fecha": "2026-06-20", "hora": "21:00", "estadio": "MetLife Stadium", "local": "Jordania", "visitante": "Austria", "golesLocal": 1, "golesVisitante": 2, "estado": "finalizado" },
+                { "grupo": "J", "fecha": "2026-06-26", "hora": "16:00", "estadio": "Gillette Stadium", "local": "Jordania", "visitante": "Argentina", "golesLocal": 0, "golesVisitante": 4, "estado": "finalizado" },
+                { "grupo": "J", "fecha": "2026-06-26", "hora": "16:00", "estadio": "MetLife Stadium", "local": "Austria", "visitante": "Argelia", "golesLocal": 1, "golesVisitante": 1, "estado": "finalizado" }
             ]
         };
 
         let estructuraEquipos = {};
+        let listaMejoresTerceros = [];
 
         function inicializarApp() {
-            generarEquiposDesdePartidos();
-            calcularTablas();
-            renderizarTablas();
+            generarEquiposBase();
+            calcularEstadisticas();
+            procesarTercerosYEliminados();
+            renderizarGrupos();
+            renderizarTablaTerceros();
+            renderizarPlayoffs();
             renderizarCalendario();
         }
 
-        function generarEquiposDesdePartidos() {
+        function generarEquiposBase() {
+            estructuraEquipos = {};
             datosMundial.partidos.forEach(p => {
-                if(!estructuraEquipos[p.local]) {
-                    estructuraEquipos[p.local] = { name: p.local, group: p.grupo, pj:0, g:0, e:0, p:0, gf:0, gc:0, dg:0, pts:0 };
-                }
-                if(!estructuraEquipos[p.visitante]) {
-                    estructuraEquipos[p.visitante] = { name: p.visitante, group: p.grupo, pj:0, g:0, e:0, p:0, gf:0, gc:0, dg:0, pts:0 };
-                }
+                if(!estructuraEquipos[p.local]) estructuraEquipos[p.local] = crearObjetoEquipo(p.local, p.grupo);
+                if(!estructuraEquipos[p.visitante]) estructuraEquipos[p.visitante] = crearObjetoEquipo(p.visitante, p.grupo);
             });
         }
 
-        function calcularTablas() {
+        function crearObjetoEquipo(nombre, grupo) {
+            return { name: nombre, group: grupo, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, dg: 0, pts: 0, statusClass: 'out' };
+        }
+
+        function calcularEstadisticas() {
             datosMundial.partidos.forEach(p => {
                 if (p.estado === "finalizado" && p.golesLocal !== null && p.golesVisitante !== null) {
                     let loc = estructuraEquipos[p.local];
@@ -110,58 +165,113 @@
                     loc.gf += p.golesLocal; loc.gc += p.golesVisitante;
                     vis.gf += p.golesVisitante; vis.gc += p.golesLocal;
 
-                    if(p.golesLocal > p.golesVisitante) {
-                        loc.g++; loc.pts += 3; vis.p++;
-                    } else if(p.golesLocal < p.golesVisitante) {
-                        vis.g++; vis.pts += 3; loc.p++;
-                    } else {
-                        loc.e++; loc.pts += 1; vis.e++; vis.pts += 1;
-                    }
-                    loc.dg = loc.gf - loc.gc;
-                    vis.dg = vis.gf - vis.gc;
+                    if(p.golesLocal > p.golesVisitante) { loc.g++; loc.pts += 3; vis.p++; }
+                    else if(p.golesLocal < p.golesVisitante) { vis.g++; vis.pts += 3; loc.p++; }
+                    else { loc.e++; loc.pts += 1; vis.e++; vis.pts += 1; }
+                    loc.dg = loc.gf - loc.gc; vis.dg = vis.gf - vis.gc;
                 }
             });
         }
 
-        function renderizarTablas() {
+        function procesarTercerosYEliminados() {
+            const letrasGrupos = [...new Set(Object.values(estructuraEquipos).map(e => e.group))].sort();
+            let tercerosTemporales = [];
+
+            letrasGrupos.forEach(letra => {
+                let ordenados = Object.values(estructuraEquipos)
+                    .filter(e => e.group === letra)
+                    .sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
+
+                // Los dos primeros clasifican directo
+                if(ordenados[0]) ordenados[0].statusClass = 'top-two';
+                if(ordenados[1]) ordenados[1].statusClass = 'top-two';
+                
+                // Guardar el tercero
+                if(ordenados[2]) {
+                    tercerosTemporales.push(ordenados[2]);
+                    ordenados[2].statusClass = 'out'; // Default por si no entra en top 8
+                }
+                // El cuarto queda fuera directo
+                if(ordenados[3]) ordenados[3].statusClass = 'out';
+            });
+
+            // Ordenar todos los terceros del torneo para sacar el Top 8
+            tercerosTemporales.sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
+            listaMejoresTerceros = tercerosTemporales;
+
+            // Marcar los 8 mejores como clasificados
+            for(let i = 0; i < Math.min(8, listaMejoresTerceros.length); i++) {
+                listaMejoresTerceros[i].statusClass = 'best-third-qualified';
+            }
+        }
+
+        function renderizarGrupos() {
             const contenedor = document.getElementById('contenedor-grupos');
             contenedor.innerHTML = '';
-
             const letrasGrupos = [...new Set(Object.values(estructuraEquipos).map(e => e.group))].sort();
 
             letrasGrupos.forEach(letra => {
-                let equiposGrupo = Object.values(estructuraEquipos)
+                let equipos = Object.values(estructuraEquipos)
                     .filter(e => e.group === letra)
                     .sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
 
                 const caja = document.createElement('div');
                 caja.className = 'group-box';
-                
-                let tabla = `
-                    <h3>GRUPO ${letra}</h3>
-                    <table>
-                        <thead>
-                            <tr><th>#</th><th class="txt-left">Equipo</th><th>PJ</th><th>DG</th><th>PTS</th></tr>
-                        </thead>
-                        <tbody>
-                `;
+                let tablaHTML = `<h3>GRUPO ${letra}</h3><table><thead><tr><th>#</th><th class="txt-left">Equipo</th><th>PJ</th><th>DG</th><th>PTS</th></tr></thead><tbody>`;
 
-                equiposGrupo.forEach((eq, i) => {
-                    let claseClasificado = i < 2 ? 'class="top-two"' : '';
-                    tabla += `
-                        <tr ${claseClasificado}>
-                            <td>${i+1}</td>
-                            <td class="txt-left">${eq.name}</td>
-                            <td>${eq.pj}</td>
-                            <td>${eq.dg > 0 ? '+' + eq.dg : eq.dg}</td>
-                            <td><strong>${eq.pts}</strong></td>
-                        </tr>
-                    `;
+                equipos.forEach((eq, i) => {
+                    tablaHTML += `<tr class="${eq.statusClass}"><td>${i+1}</td><td class="txt-left">${eq.name}</td><td>${eq.pj}</td><td>${eq.dg > 0 ? '+' + eq.dg : eq.dg}</td><td><strong>${eq.pts}</strong></td></tr>`;
                 });
-
-                tabla += '</tbody></table>';
-                caja.innerHTML = tabla;
+                tablaHTML += '</tbody></table>';
+                caja.innerHTML = tablaHTML;
                 contenedor.appendChild(caja);
+            });
+        }
+
+        function renderizarTablaTerceros() {
+            const cuerpo = document.getElementById('cuerpo-terceros');
+            cuerpo.innerHTML = '';
+
+            listaMejoresTerceros.forEach((eq, i) => {
+                let esClasificado = eq.statusClass === 'best-third-qualified';
+                let stringEstado = esClasificado ? '✅ Clasifica' : '❌ Eliminado';
+                
+                const tr = document.createElement('tr');
+                tr.className = eq.statusClass;
+                tr.innerHTML = `<td>${i+1}</td><td>Grupo ${eq.group}</td><td class="txt-left">${eq.name}</td><td>${eq.pj}</td><td>${eq.dg}</td><td>${eq.gf}</td><td><strong>${eq.pts}</strong></td><td><strong>${stringEstado}</strong></td>`;
+                cuerpo.appendChild(tr);
+            });
+        }
+
+        function renderizarPlayoffs() {
+            const contenedor = document.getElementById('contenedor-playoffs');
+            contenedor.innerHTML = '';
+
+            // Conseguir ganadores y segundos ordenados para simulación de cruces
+            const obtenerPorPosicion = (grupo, pos) => {
+                return Object.values(estructuraEquipos).filter(e => e.group === grupo).sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf)[pos];
+            };
+
+            const ganadoresTerceros = listaMejoresTerceros.filter(e => e.statusClass === 'best-third-qualified');
+
+            // Definimos algunos cruces estructurales típicos del nuevo formato de la FIFA
+            const crucesSimulados = [
+                { llave: "Partido 1", t1: obtenerPorPosicion("A", 0), t2: ganadoresTerceros[0] || {name: "Mejor Tercero"} },
+                { llave: "Partido 2", t1: obtenerPorPosicion("A", 1), t2: obtenerPorPosicion("B", 1) },
+                { llave: "Partido 3", t1: obtenerPorPosicion("B", 0), t2: ganadoresTerceros[1] || {name: "Mejor Tercero"} },
+                { llave: "Partido 4", t1: obtenerPorPosicion("J", 0), t2: ganadoresTerceros[2] || {name: "Mejor Tercero"} },
+                { llave: "Partido 5", t1: obtenerPorPosicion("J", 1), t2: {name: "2° Grupo C"} }
+            ];
+
+            crucesSimulados.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'playoff-match';
+                div.innerHTML = `
+                    <h4>${c.llave}</h4>
+                    <div class="team-row"><span class="team-name">🔹 ${c.t1 ? c.t1.name : 'Por clasificar'}</span><span>-</span></div>
+                    <div class="team-row"><span class="team-name">🔹 ${c.t2 ? c.t2.name : 'Por clasificar'}</span><span>-</span></div>
+                `;
+                contenedor.appendChild(div);
             });
         }
 
@@ -176,7 +286,6 @@
                     <div class="match-meta">
                         <div><strong>Grupo ${p.grupo}</strong></div>
                         <div>📅 ${p.fecha} - ⏰ ${p.hora}</div>
-                        <div style="font-size:0.75rem;">🏟️ ${p.estadio}</div>
                     </div>
                     <div class="match-display">
                         <span style="text-align: right; width: 40%;">${p.local}</span>
