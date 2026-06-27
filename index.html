@@ -1,175 +1,219 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard Mundial 2026</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      margin: 20px;
-    }
-    h1, h2 {
-      text-align: center;
-      color: #333;
-    }
-    section {
-      margin: 20px auto;
-      padding: 15px;
-      background: #fff;
-      border-radius: 8px;
-      max-width: 900px;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      padding: 8px;
-      border-bottom: 1px solid #ddd;
-    }
-    canvas {
-      margin: 20px auto;
-      display: block;
-      max-width: 600px;
-    }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mundial 2026 - Posiciones Oficiales FIFA</title>
+    <style>
+        :root {
+            --primary: #001f3f;
+            --secondary: #0074d9;
+            --bg: #f4f6f9;
+            --card: #ffffff;
+            --text: #333333;
+            --accent: #2ecc71;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+        header { background: var(--primary); color: white; text-align: center; padding: 1.5rem; }
+        nav { display: flex; justify-content: center; background: #111111; }
+        nav button { background: transparent; border: none; color: white; padding: 1rem 2rem; font-size: 1rem; cursor: pointer; font-weight: bold; }
+        nav button.active { background: rgba(255,255,255,0.15); border-bottom: 4px solid var(--secondary); }
+        main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Estilos Calendario */
+        .match-card { background: var(--card); border-radius: 8px; padding: 1.2rem; margin: 0.8rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .match-meta { font-size: 0.85rem; color: #666; width: 30%; }
+        .match-display { display: flex; justify-content: center; align-items: center; gap: 1rem; width: 45%; font-size: 1.1rem; font-weight: bold; }
+        .score { background: #f1f2f6; padding: 0.4rem 0.8rem; border-radius: 6px; min-width: 25px; text-align: center; color: var(--primary); }
+        .status-badge { width: 25%; text-align: right; font-size: 0.85rem; font-weight: bold; }
+        .status-FT { color: #777; }
+        .status-LIVE { color: #ff4136; animation: pulse 1s infinite; }
+
+        /* Estilos Tablas */
+        .grid-grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
+        .group-box { background: var(--card); border-radius: 8px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .group-box h3 { margin-top: 0; border-bottom: 2px solid var(--secondary); padding-bottom: 0.4rem; color: var(--primary); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: center; }
+        th { background: #f8fafc; padding: 0.6rem; color: #666; }
+        td { padding: 0.6rem 0.3rem; border-bottom: 1px solid #f1f5f9; }
+        .txt-left { text-align: left; font-weight: bold; }
+        .top-two { border-left: 4px solid var(--accent); }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    </style>
 </head>
 <body>
-  <h1>Dashboard Mundial 2026</h1>
 
-  <section id="matches">
-    <h2>Partidos en vivo</h2>
-    <ul id="match-list"></ul>
-  </section>
+    <header>
+        <h1>🏆 SEGUIMIENTO MUNDIAL 2026</h1>
+        <p>Clasificaciones y fixture en tiempo real sincronizado de forma libre</p>
+    </header>
 
-  <section id="standings">
-    <h2>Clasificaciones</h2>
-    <div id="groups"></div>
-  </section>
+    <nav>
+        <button onclick="verPestana('grupos')" id="btn-grupos" class="active">Tablas de Grupos</button>
+        <button onclick="verPestana('fechas')" id="btn-fechas">Fechas y Partidos</button>
+    </nav>
 
-  <section id="knockout">
-    <h2>Próximos cruces</h2>
-    <ul id="knockout-list"></ul>
-  </section>
+    <main>
+        <section id="grupos" class="tab-content active">
+            <h2>Posiciones de los 12 Grupos Oficiales</h2>
+            <div id="contenedor-grupos" class="grid-grupos">Sincronizando clasificaciones oficiales...</div>
+        </section>
 
-  <section id="stats">
-    <h2>Estadísticas</h2>
-    <canvas id="goalsChart"></canvas>
-    <canvas id="cardsChart"></canvas>
-    <canvas id="possessionChart"></canvas>
-  </section>
+        <section id="fechas" class="tab-content">
+            <h2>Fixture General del Torneo</h2>
+            <div id="lista-partidos">Cargando partidos...</div>
+        </section>
+    </main>
 
-  <script>
-    async function fetchMatches() {
-      try {
-        const res = await fetch('https://api.fifa.com/api/v1/calendar/matches');
-        const data = await res.json();
-        renderMatches(data.Results);
-      } catch (err) {
-        console.error("Error cargando partidos", err);
-      }
-    }
+    <script>
+        let partidosMundial = [];
+        let estructuraEquipos = {};
 
-    function renderMatches(matches) {
-      const list = document.getElementById('match-list');
-      list.innerHTML = '';
-      matches.slice(0, 10).forEach(m => {
-        list.innerHTML += `<li>${m.HomeTeam.ShortName} ${m.HomeScore} - ${m.AwayScore} ${m.AwayTeam.ShortName}</li>`;
-      });
-    }
+        // API Espejo Abierta y libre de CORS que lee bases de datos oficiales de torneos
+        const URL_PROVEEDOR = 'https://raw.githubusercontent.com/openfootball/world-cup/master/2026--north-america/cup.json';
 
-    async function fetchStandings() {
-      try {
-        const res = await fetch('https://api.fifa.com/api/v1/standings');
-        const data = await res.json();
-        renderStandings(data.Groups);
-        calculateKnockout(data.Groups);
-      } catch (err) {
-        console.error("Error cargando clasificaciones", err);
-      }
-    }
+        async function inicializarApp() {
+            try {
+                const respuesta = await fetch(URL_PROVEEDOR);
+                if (!respuesta.ok) throw new Error("Error de conexión");
+                const datos = await respuesta.json();
 
-    function renderStandings(groups) {
-      const container = document.getElementById('groups');
-      container.innerHTML = '';
-      groups.forEach(g => {
-        let html = `<h3>${g.GroupName}</h3><ul>`;
-        g.Teams.forEach(t => {
-          html += `<li>${t.TeamName} - ${t.Points} pts</li>`;
-        });
-        html += '</ul>';
-        container.innerHTML += html;
-      });
+                procesarCopa(datos);
+                renderizarTablas();
+                renderizarCalendario();
 
-      // Renderizar gráficos con datos del primer grupo
-      renderGoalsChart(groups[0].Teams);
-      renderCardsChart(groups[0].Teams);
-      renderPossessionChart(groups[0].Teams);
-    }
-
-    function calculateKnockout(groups) {
-      const list = document.getElementById('knockout-list');
-      list.innerHTML = '';
-      // Ejemplo: Grupo A 1° vs Grupo B 2°
-      list.innerHTML += `<li>${groups[0].Teams[0].TeamName} vs ${groups[1].Teams[1].TeamName}</li>`;
-    }
-
-    function renderGoalsChart(teams) {
-      const ctx = document.getElementById('goalsChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: teams.map(t => t.TeamName),
-          datasets: [{
-            label: 'Goles a favor',
-            data: teams.map(t => t.GoalsFor),
-            backgroundColor: 'rgba(54, 162, 235, 0.6)'
-          }]
+            } catch (error) {
+                document.getElementById('contenedor-grupos').innerHTML = "❌ Error al conectar con el servidor de réplica de la FIFA. Reintenta recargando la página.";
+                console.error(error);
+            }
         }
-      });
-    }
 
-    function renderCardsChart(teams) {
-      const ctx = document.getElementById('cardsChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: teams.map(t => t.TeamName),
-          datasets: [{
-            label: 'Tarjetas amarillas',
-            data: teams.map(t => t.YellowCards),
-            backgroundColor: ['#f39c12','#e74c3c','#2ecc71','#3498db']
-          }]
+        function procesarCopa(datos) {
+            partidosMundial = [];
+            estructuraEquipos = {};
+
+            datos.rounds.forEach(ronda => {
+                ronda.matches.forEach(m => {
+                    partidosMundial.push({
+                        grupo: m.group || "Fase Final",
+                        fecha: m.date,
+                        hora: m.time || "Por definir",
+                        venue: m.stadium || m.city || "Sede Oficial",
+                        homeTeam: m.team1,
+                        awayTeam: m.team2,
+                        scoreHome: m.score1,
+                        scoreAway: m.score2,
+                        status: m.score1 !== null ? 'FT' : 'NS'
+                    });
+
+                    if (m.group) {
+                        if (!estructuraEquipos[m.team1]) inicializarEquipo(m.team1, m.group);
+                        if (!estructuraEquipos[m.team2]) inicializarEquipo(m.team2, m.group);
+
+                        if (m.score1 !== null && m.score2 !== null) {
+                            calcularPuntos(m.team1, m.team2, m.score1, m.score2);
+                        }
+                    }
+                });
+            });
         }
-      });
-    }
 
-    function renderPossessionChart(teams) {
-      const ctx = document.getElementById('possessionChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: teams.map(t => t.TeamName),
-          datasets: [{
-            label: 'Posesión (%)',
-            data: teams.map(t => t.Possession),
-            borderColor: 'rgba(255, 99, 132, 1)',
-            fill: false
-          }]
+        function inicializarEquipo(name, grupo) {
+            estructuraEquipos[name] = { name, group: grupo, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, dg: 0, pts: 0 };
         }
-      });
-    }
 
-    setInterval(() => {
-      fetchMatches();
-      fetchStandings();
-    }, 60000);
+        function calcularPuntos(t1, t2, s1, s2) {
+            let e1 = estructuraEquipos[t1];
+            let e2 = estructuraEquipos[t2];
+            e1.pj++; e2.pj++;
+            e1.gf += s1; e1.gc += s2;
+            e2.gf += s2; e2.gc += s1;
 
-    fetchMatches();
-    fetchStandings();
-  </script>
+            if (s1 > s2) { e1.g++; e1.pts += 3; e2.p++; }
+            else if (s1 < s2) { e2.g++; e2.pts += 3; e1.p++; }
+            else { e1.e++; e1.pts += 1; e2.e++; e2.pts += 1; }
+            e1.dg = e1.gf - e1.gc; e2.dg = e2.gf - e2.gc;
+        }
+
+        function renderizarTablas() {
+            const contenedor = document.getElementById('contenedor-grupos');
+            contenedor.innerHTML = '';
+
+            const gruposUnicos = [...new Set(Object.values(estructuraEquipos).map(e => e.group))].sort();
+
+            gruposUnicos.forEach(grupo => {
+                let equipos = Object.values(estructuraEquipos)
+                    .filter(e => e.group === grupo)
+                    .sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
+
+                const caja = document.createElement('div');
+                caja.className = 'group-box';
+                
+                let tablaHTML = `
+                    <h3>${grupo.toUpperCase().replace('GROUP ', 'GRUPO ')}</h3>
+                    <table>
+                        <thead>
+                            <tr><th>#</th><th class="txt-left">Equipo</th><th>PJ</th><th>DG</th><th>PTS</th></tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                equipos.forEach((eq, i) => {
+                    let claseClasificado = i < 2 ? 'class="top-two"' : '';
+                    tablaHTML += `
+                        <tr ${claseClasificado}>
+                            <td>${i+1}</td>
+                            <td class="txt-left">${eq.name}</td>
+                            <td>${eq.pj}</td>
+                            <td>${eq.dg > 0 ? '+' + eq.dg : eq.dg}</td>
+                            <td><strong>${eq.pts}</strong></td>
+                        </tr>
+                    `;
+                });
+
+                tablaHTML += '</tbody></table>';
+                caja.innerHTML = tablaHTML;
+                contenedor.appendChild(caja);
+            });
+        }
+
+        function renderizarCalendario() {
+            const lista = document.getElementById('lista-partidos');
+            lista.innerHTML = '';
+
+            partidosMundial.forEach(p => {
+                let estadoTexto = p.status === 'FT' ? '✅ Finalizado' : '⏳ Programado';
+                const card = document.createElement('div');
+                card.className = 'match-card';
+                card.innerHTML = `
+                    <div class="match-meta">
+                        <div><strong>${p.grupo.replace('Group ', 'Grupo ')}</strong></div>
+                        <div>📅 ${p.fecha} - ⏰ ${p.hora}</div>
+                    </div>
+                    <div class="match-display">
+                        <span style="text-align: right; width: 40%;">${p.homeTeam}</span>
+                        <span class="score">${p.scoreHome !== null ? p.scoreHome : '-'}</span>
+                        <span style="color: #aaa;">vs</span>
+                        <span class="score">${p.scoreAway !== null ? p.scoreAway : '-'}</span>
+                        <span style="text-align: left; width: 40%;">${p.awayTeam}</span>
+                    </div>
+                    <div class="status-badge status-${p.status}">${estadoTexto}</div>
+                `;
+                lista.appendChild(card);
+            });
+        }
+
+        function verPestana(id) {
+            document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('btn-' + id).classList.add('active');
+        }
+
+        inicializarApp();
+    </script>
 </body>
 </html>
