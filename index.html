@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mundial 2026 - Conexión Oficial en Vivo</title>
+    <title>Mundial 2026 - En Vivo GitHub</title>
     <style>
         :root {
             --primary: #0f172a;
@@ -11,7 +11,7 @@
             --bg: #f8fafc;
             --card: #ffffff;
             --text: #334155;
-            --accent: #36725e;
+            --accent: #10b981;
         }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         header { background: var(--primary); color: white; text-align: center; padding: 1.5rem; }
@@ -28,9 +28,9 @@
         .match-display { display: flex; justify-content: center; align-items: center; gap: 1rem; width: 45%; font-size: 1.1rem; font-weight: bold; }
         .score { background: #f1f5f9; padding: 0.4rem 0.8rem; border-radius: 6px; min-width: 25px; text-align: center; color: #0f172a; }
         .status-badge { width: 25%; text-align: right; font-size: 0.85rem; font-weight: bold; }
-        .status-FINISHED { color: #64748b; }
-        .status-TIMED, .status-SCHEDULED { color: var(--secondary); }
-        .status-IN_PLAY { color: #ef4444; animation: pulse 1s infinite; }
+        .status-FT { color: #64748b; }
+        .status-NS { color: var(--secondary); }
+        .status-LIVE { color: #ef4444; animation: pulse 1s infinite; }
 
         /* Estilos Tablas */
         .grid-grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
@@ -49,7 +49,7 @@
 
     <header>
         <h1>🏆 MUNDIAL 2026 - EN VIVO</h1>
-        <p>Conectado directamente a las fuentes oficiales de Football-Data</p>
+        <p>Resultados y posiciones en tiempo real desde GitHub Pages</p>
     </header>
 
     <nav>
@@ -60,7 +60,7 @@
     <main>
         <section id="fechas" class="tab-content active">
             <h2>Fixture y Resultados en Tiempo Real</h2>
-            <div id="lista-partidos">Conectando con el servidor deportivo...</div>
+            <div id="lista-partidos">Conectando con el servidor deportivo de respaldo...</div>
         </section>
 
         <section id="grupos" class="tab-content">
@@ -71,74 +71,102 @@
 
     <script>
         let partidosMundial = [];
-        let datosGrupos = {};
+        let estructuraEquipos = {};
 
-        // === CONFIGURACIÓN DE LA API CON TU TOKEN ===
-        const API_TOKEN = '8c009beb04204a25a25c2a351e9b14a3'; 
-        
-        const URL_PARTIDOS = 'https://api.football-data.org/v4/competitions/WC/matches';
-        const URL_POSICIONES = 'https://api.football-data.org/v4/competitions/WC/standings';
-
-        async function consultarAPI(url) {
-            const respuesta = await fetch(url, {
-                headers: { 'X-Auth-Token': API_TOKEN }
-            });
-            if (!respuesta.ok) throw new Error(`Error de API: ${respuesta.status}`);
-            return await respuesta.json();
-        }
+        // URL pública alternativa que no bloquea a GitHub Pages
+        const URL_DATA = 'https://raw.githubusercontent.com/openfootball/world-cup/master/2026--north-america/cup.json';
 
         async function inicializarApp() {
             try {
-                // 1. Descargar partidos y posiciones en paralelo
-                const [datosPartidos, datosPosiciones] = await Promise.all([
-                    consultarAPI(URL_PARTIDOS),
-                    consultarAPI(URL_POSICIONES)
-                ]);
+                const respuesta = await fetch(URL_DATA);
+                if (!respuesta.ok) throw new Error("Error cargando los datos");
+                const datos = await respuesta.json();
 
-                partidosMundial = datosPartidos.matches;
-                datosGrupos = datosPosiciones.standings;
+                // Procesar la estructura del openfootball JSON para adaptarla a nuestra app
+                maquetarDatos(datos);
 
-                // 2. Renderizar la interfaz
                 renderizarCalendario();
                 renderizarTablas();
 
             } catch (error) {
-                document.getElementById('lista-partidos').innerHTML = "❌ Error al conectar con la API. Verifica que estés ejecutando el archivo desde un servidor local (http://localhost) o que tu plan gratuito no haya excedido el límite de peticiones.";
+                document.getElementById('lista-partidos').innerHTML = "❌ Error al sincronizar los datos en vivo. Reintenta en unos instantes.";
                 console.error(error);
             }
+        }
+
+        function maquetarDatos(datos) {
+            partidosMundial = [];
+            estructuraEquipos = {};
+
+            datos.rounds.forEach(ronda => {
+                ronda.matches.forEach(m => {
+                    // Guardar partido adaptado
+                    partidosMundial.push({
+                        grupo: m.group || "Fase Final",
+                        fecha: m.date,
+                        hora: m.time || "Por definir",
+                        venue: m.stadium || m.city || "Sede Oficial",
+                        homeTeam: m.team1,
+                        awayTeam: m.team2,
+                        scoreHome: m.score1,
+                        scoreAway: m.score2,
+                        status: m.score1 !== null ? 'FT' : 'NS'
+                    });
+
+                    // Construir tabla de posiciones dinámicamente si es fase de grupos
+                    if (m.group) {
+                        if (!estructuraEquipos[m.team1]) inicializarEquipo(m.team1, m.group);
+                        if (!estructuraEquipos[m.team2]) inicializarEquipo(m.team2, m.group);
+
+                        if (m.score1 !== null && m.score2 !== null) {
+                            calcularResultado(m.team1, m.team2, m.score1, m.score2);
+                        }
+                    }
+                });
+            });
+        }
+
+        function inicializarEquipo(name, grupo) {
+            estructuraEquipos[name] = { name, group: grupo, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, dg: 0, pts: 0 };
+        }
+
+        function calcularResultado(t1, t2, s1, s2) {
+            let e1 = estructuraEquipos[t1];
+            let e2 = estructuraEquipos[t2];
+
+            e1.pj++; e2.pj++;
+            e1.gf += s1; e1.gc += s2;
+            e2.gf += s2; e2.gc += s1;
+
+            if (s1 > s2) { e1.g++; e1.pts += 3; e2.p++; }
+            else if (s1 < s2) { e2.g++; e2.pts += 3; e1.p++; }
+            else { e1.e++; e1.pts += 1; e2.e++; e2.pts += 1; }
+
+            e1.dg = e1.gf - e1.gc;
+            e2.dg = e2.gf - e2.gc;
         }
 
         function renderizarCalendario() {
             const lista = document.getElementById('lista-partidos');
             lista.innerHTML = '';
 
-            if (!partidosMundial || partidosMundial.length === 0) {
-                lista.innerHTML = '<p>No hay partidos disponibles en este momento.</p>';
-                return;
-            }
-
             partidosMundial.forEach(p => {
-                const fechaLocal = new Date(p.utcDate).toLocaleDateString();
-                const horaLocal = new Date(p.utcDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                let estadoTexto = p.status === 'FT' ? '✅ Finalizado' : '⏳ Programado';
                 
-                let estadoTexto = '⏳ Programado';
-                if(p.status === 'FINISHED') estadoTexto = '✅ Finalizado';
-                if(p.status === 'IN_PLAY') estadoTexto = '🔴 EN VIVO';
-
                 const card = document.createElement('div');
                 card.className = 'match-card';
                 card.innerHTML = `
                     <div class="match-meta">
-                        <div><strong>${p.group ? p.group.replace('GROUP_', 'Grupo ') : 'Fase Final'}</strong></div>
-                        <div>📅 ${fechaLocal} - ⏰ ${horaLocal}</div>
-                        <div style="font-size:0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🏟️ ${p.venue || 'Por determinar'}</div>
+                        <div><strong>${p.grupo}</strong></div>
+                        <div>📅 ${p.fecha} - ⏰ ${p.hora}</div>
+                        <div style="font-size:0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🏟️ ${p.venue}</div>
                     </div>
                     <div class="match-display">
-                        <span style="text-align: right; width: 40%;">${p.homeTeam.name || 'Por Definir'}</span>
-                        <span class="score">${p.score.fullTime.home !== null ? p.score.fullTime.home : '-'}</span>
+                        <span style="text-align: right; width: 40%;">${p.homeTeam}</span>
+                        <span class="score">${p.scoreHome !== null ? p.scoreHome : '-'}</span>
                         <span style="color: #94a3b8; font-size: 0.85rem;">vs</span>
-                        <span class="score">${p.score.fullTime.away !== null ? p.score.fullTime.away : '-'}</span>
-                        <span style="text-align: left; width: 40%;">${p.awayTeam.name || 'Por Definir'}</span>
+                        <span class="score">${p.scoreAway !== null ? p.scoreAway : '-'}</span>
+                        <span style="text-align: left; width: 40%;">${p.awayTeam}</span>
                     </div>
                     <div class="status-badge status-${p.status}">
                         ${estadoTexto}
@@ -152,18 +180,18 @@
             const contenedor = document.getElementById('contenedor-grupos');
             contenedor.innerHTML = '';
 
-            if (!datosGrupos || datosGrupos.length === 0) {
-                contenedor.innerHTML = '<p>Las tablas de clasificación se activarán al inicio del torneo.</p>';
-                return;
-            }
+            const gruposUnicos = [...new Set(Object.values(estructuraEquipos).map(e => e.group))].sort();
 
-            datosGrupos.forEach(grupo => {
-                const nombreGrupo = grupo.group.replace('GROUP_', 'GRUPO ');
+            gruposUnicos.forEach(grupo => {
+                let equipos = Object.values(estructuraEquipos)
+                    .filter(e => e.group === grupo)
+                    .sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
+
                 const caja = document.createElement('div');
                 caja.className = 'group-box';
                 
                 let tablaHTML = `
-                    <h3>${nombreGrupo}</h3>
+                    <h3>${grupo.toUpperCase()}</h3>
                     <table>
                         <thead>
                             <tr><th>#</th><th class="txt-left">Equipo</th><th>PJ</th><th>DG</th><th>PTS</th></tr>
@@ -171,16 +199,15 @@
                         <tbody>
                 `;
 
-                grupo.table.forEach(fila => {
-                    let claseClasificado = fila.position <= 2 ? 'class="top-two"' : '';
-                    
+                equipos.forEach((eq, i) => {
+                    let claseClasificado = i < 2 ? 'class="top-two"' : '';
                     tablaHTML += `
                         <tr ${claseClasificado}>
-                            <td>${fila.position}</td>
-                            <td class="txt-left">${fila.team.name}</td>
-                            <td>${fila.playedGames}</td>
-                            <td>${fila.goalDifference > 0 ? '+' + fila.goalDifference : fila.goalDifference}</td>
-                            <td><strong>${fila.points}</strong></td>
+                            <td>${i+1}</td>
+                            <td class="txt-left">${eq.name}</td>
+                            <td>${eq.pj}</td>
+                            <td>${eq.dg > 0 ? '+' + eq.dg : eq.dg}</td>
+                            <td><strong>${eq.pts}</strong></td>
                         </tr>
                     `;
                 });
@@ -198,7 +225,6 @@
             document.getElementById('btn-' + id).classList.add('active');
         }
 
-        // Ejecutar inmediatamente
         inicializarApp();
     </script>
 </body>
