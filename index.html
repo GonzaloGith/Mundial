@@ -9,211 +9,58 @@
             --primary: #001f3f;
             --secondary: #0074d9;
             --bg: #f4f6f9;
-            --card: #ffffff;
             --text: #333333;
-            --accent: #2ecc71;
         }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
-        header { background: var(--primary); color: white; text-align: center; padding: 1.5rem; }
-        nav { display: flex; justify-content: center; background: #111111; }
-        nav button { background: transparent; border: none; color: white; padding: 1rem 2rem; font-size: 1rem; cursor: pointer; font-weight: bold; }
-        nav button.active { background: rgba(255,255,255,0.15); border-bottom: 4px solid var(--secondary); }
-        main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        /* Estilos Calendario */
-        .match-card { background: var(--card); border-radius: 8px; padding: 1.2rem; margin: 0.8rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .match-meta { font-size: 0.85rem; color: #666; width: 30%; }
-        .match-display { display: flex; justify-content: center; align-items: center; gap: 1rem; width: 45%; font-size: 1.1rem; font-weight: bold; }
-        .score { background: #f1f2f6; padding: 0.4rem 0.8rem; border-radius: 6px; min-width: 25px; text-align: center; color: var(--primary); }
-        .status-badge { width: 25%; text-align: right; font-size: 0.85rem; font-weight: bold; }
-        .status-FT { color: #777; }
-        .status-LIVE { color: #ff4136; animation: pulse 1s infinite; }
-
-        /* Estilos Tablas */
-        .grid-grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
-        .group-box { background: var(--card); border-radius: 8px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .group-box h3 { margin-top: 0; border-bottom: 2px solid var(--secondary); padding-bottom: 0.4rem; color: var(--primary); }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: center; }
-        th { background: #f8fafc; padding: 0.6rem; color: #666; }
-        td { padding: 0.6rem 0.3rem; border-bottom: 1px solid #f1f5f9; }
-        .txt-left { text-align: left; font-weight: bold; }
-        .top-two { border-left: 4px solid var(--accent); }
-
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            overflow-x: hidden;
+        }
+        header { 
+            background: var(--primary); 
+            color: white; 
+            text-align: center; 
+            padding: 1.5rem; 
+        }
+        main { 
+            max-width: 1200px; 
+            margin: 1.5rem auto; 
+            padding: 0 1rem; 
+        }
+        /* Contenedor responsivo para el contenido de la FIFA */
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            height: 85vh; /* Ajusta la altura de la ventana en pantalla */
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            overflow: hidden;
+            background: #ffffff;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 <body>
 
     <header>
         <h1>🏆 SEGUIMIENTO MUNDIAL 2026</h1>
-        <p>Clasificaciones y fixture en tiempo real sincronizado de forma libre</p>
+        <p>Datos oficiales conectados directamente desde la plataforma de FIFA</p>
     </header>
 
-    <nav>
-        <button onclick="verPestana('grupos')" id="btn-grupos" class="active">Tablas de Grupos</button>
-        <button onclick="verPestana('fechas')" id="btn-fechas">Fechas y Partidos</button>
-    </nav>
-
     <main>
-        <section id="grupos" class="tab-content active">
-            <h2>Posiciones de los 12 Grupos Oficiales</h2>
-            <div id="contenedor-grupos" class="grid-grupos">Sincronizando clasificaciones oficiales...</div>
-        </section>
-
-        <section id="fechas" class="tab-content">
-            <h2>Fixture General del Torneo</h2>
-            <div id="lista-partidos">Cargando partidos...</div>
-        </section>
+        <div class="iframe-container">
+            <iframe 
+                src="https://www.fifa.com/es/tournaments/mens/worldcup/canadamexicousa2026/standings" 
+                title="Clasificaciones Oficiales FIFA Mundial 2026">
+            </iframe>
+        </div>
     </main>
 
-    <script>
-        let partidosMundial = [];
-        let estructuraEquipos = {};
-
-        // API Espejo Abierta y libre de CORS que lee bases de datos oficiales de torneos
-        const URL_PROVEEDOR = 'https://raw.githubusercontent.com/openfootball/world-cup/master/2026--north-america/cup.json';
-
-        async function inicializarApp() {
-            try {
-                const respuesta = await fetch(URL_PROVEEDOR);
-                if (!respuesta.ok) throw new Error("Error de conexión");
-                const datos = await respuesta.json();
-
-                procesarCopa(datos);
-                renderizarTablas();
-                renderizarCalendario();
-
-            } catch (error) {
-                document.getElementById('contenedor-grupos').innerHTML = "❌ Error al conectar con el servidor de réplica de la FIFA. Reintenta recargando la página.";
-                console.error(error);
-            }
-        }
-
-        function procesarCopa(datos) {
-            partidosMundial = [];
-            estructuraEquipos = {};
-
-            datos.rounds.forEach(ronda => {
-                ronda.matches.forEach(m => {
-                    partidosMundial.push({
-                        grupo: m.group || "Fase Final",
-                        fecha: m.date,
-                        hora: m.time || "Por definir",
-                        venue: m.stadium || m.city || "Sede Oficial",
-                        homeTeam: m.team1,
-                        awayTeam: m.team2,
-                        scoreHome: m.score1,
-                        scoreAway: m.score2,
-                        status: m.score1 !== null ? 'FT' : 'NS'
-                    });
-
-                    if (m.group) {
-                        if (!estructuraEquipos[m.team1]) inicializarEquipo(m.team1, m.group);
-                        if (!estructuraEquipos[m.team2]) inicializarEquipo(m.team2, m.group);
-
-                        if (m.score1 !== null && m.score2 !== null) {
-                            calcularPuntos(m.team1, m.team2, m.score1, m.score2);
-                        }
-                    }
-                });
-            });
-        }
-
-        function inicializarEquipo(name, grupo) {
-            estructuraEquipos[name] = { name, group: grupo, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, dg: 0, pts: 0 };
-        }
-
-        function calcularPuntos(t1, t2, s1, s2) {
-            let e1 = estructuraEquipos[t1];
-            let e2 = estructuraEquipos[t2];
-            e1.pj++; e2.pj++;
-            e1.gf += s1; e1.gc += s2;
-            e2.gf += s2; e2.gc += s1;
-
-            if (s1 > s2) { e1.g++; e1.pts += 3; e2.p++; }
-            else if (s1 < s2) { e2.g++; e2.pts += 3; e1.p++; }
-            else { e1.e++; e1.pts += 1; e2.e++; e2.pts += 1; }
-            e1.dg = e1.gf - e1.gc; e2.dg = e2.gf - e2.gc;
-        }
-
-        function renderizarTablas() {
-            const contenedor = document.getElementById('contenedor-grupos');
-            contenedor.innerHTML = '';
-
-            const gruposUnicos = [...new Set(Object.values(estructuraEquipos).map(e => e.group))].sort();
-
-            gruposUnicos.forEach(grupo => {
-                let equipos = Object.values(estructuraEquipos)
-                    .filter(e => e.group === grupo)
-                    .sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
-
-                const caja = document.createElement('div');
-                caja.className = 'group-box';
-                
-                let tablaHTML = `
-                    <h3>${grupo.toUpperCase().replace('GROUP ', 'GRUPO ')}</h3>
-                    <table>
-                        <thead>
-                            <tr><th>#</th><th class="txt-left">Equipo</th><th>PJ</th><th>DG</th><th>PTS</th></tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                equipos.forEach((eq, i) => {
-                    let claseClasificado = i < 2 ? 'class="top-two"' : '';
-                    tablaHTML += `
-                        <tr ${claseClasificado}>
-                            <td>${i+1}</td>
-                            <td class="txt-left">${eq.name}</td>
-                            <td>${eq.pj}</td>
-                            <td>${eq.dg > 0 ? '+' + eq.dg : eq.dg}</td>
-                            <td><strong>${eq.pts}</strong></td>
-                        </tr>
-                    `;
-                });
-
-                tablaHTML += '</tbody></table>';
-                caja.innerHTML = tablaHTML;
-                contenedor.appendChild(caja);
-            });
-        }
-
-        function renderizarCalendario() {
-            const lista = document.getElementById('lista-partidos');
-            lista.innerHTML = '';
-
-            partidosMundial.forEach(p => {
-                let estadoTexto = p.status === 'FT' ? '✅ Finalizado' : '⏳ Programado';
-                const card = document.createElement('div');
-                card.className = 'match-card';
-                card.innerHTML = `
-                    <div class="match-meta">
-                        <div><strong>${p.grupo.replace('Group ', 'Grupo ')}</strong></div>
-                        <div>📅 ${p.fecha} - ⏰ ${p.hora}</div>
-                    </div>
-                    <div class="match-display">
-                        <span style="text-align: right; width: 40%;">${p.homeTeam}</span>
-                        <span class="score">${p.scoreHome !== null ? p.scoreHome : '-'}</span>
-                        <span style="color: #aaa;">vs</span>
-                        <span class="score">${p.scoreAway !== null ? p.scoreAway : '-'}</span>
-                        <span style="text-align: left; width: 40%;">${p.awayTeam}</span>
-                    </div>
-                    <div class="status-badge status-${p.status}">${estadoTexto}</div>
-                `;
-                lista.appendChild(card);
-            });
-        }
-
-        function verPestana(id) {
-            document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.getElementById('btn-' + id).classList.add('active');
-        }
-
-        inicializarApp();
-    </script>
 </body>
 </html>
